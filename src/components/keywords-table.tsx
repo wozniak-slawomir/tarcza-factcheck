@@ -8,11 +8,23 @@ import {
   IconChevronsRight,
   IconCirclePlus,
   IconX,
+  IconLoader,
 } from "@tabler/icons-react";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import React from "react";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "./ui/alert-dialog";
 
 type KeywordItem = { id: string; keyword: string; createdAt: string | null };
 
@@ -130,106 +142,137 @@ export default function KeywordsTable() {
       }
     })();
   };
+
   return (
-    <Card className="@container/card">
-      <CardHeader>
-        <CardDescription>
-          <Input value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
-        </CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Słowa kluczowe:</CardTitle>
-        <CardAction>
-          <Button onClick={() => addKeyword(inputValue)} disabled={adding}>
-            <IconCirclePlus />
-            {adding ? "Dodawanie..." : "Dodaj"}
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Słowo</TableHead>
-              <TableHead className="text-right">Data dodania</TableHead>
-              <TableHead className="text-right">Akcje</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+    <>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>
+            <form
+              action="submit"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addKeyword(inputValue);
+              }}
+              className="flex gap-5"
+            >
+              <Input value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
+              <Button onClick={() => addKeyword(inputValue)} disabled={adding} className="relative">
+                <span className={`flex items-center gap-2 ${adding ? "opacity-0" : ""}`}>
+                  <IconCirclePlus />
+                  Dodaj
+                </span>
+                {adding && <IconLoader className="absolute right-1/2 top-1/2 -translate-y-1/2 translate-x-1/2" />}
+              </Button>
+            </form>
+          </CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Słowa kluczowe:</CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 sm:px-6">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={2} className="h-24 text-center">
-                  Loading...
-                </TableCell>
+                <TableHead className="w-[100px]">Słowo</TableHead>
+                <TableHead className="text-right">Data dodania</TableHead>
+                <TableHead className="text-right">Akcje</TableHead>
               </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={2} className="h-24 text-center text-destructive">
-                  {error}
-                </TableCell>
-              </TableRow>
-            ) : paginatedKeywords.length ? (
-              paginatedKeywords.map((kw) => (
-                <TableRow key={kw.id}>
-                  <TableCell className="font-medium">{kw.keyword}</TableCell>
-                  <TableCell className="text-right">{kw.createdAt ? formatTimestamp(kw.createdAt) : "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={async () => {
-                        // simple confirm
-                        if (!confirm(`Usuń słowo kluczowe: "${kw.keyword}"?`)) return;
-                        try {
-                          setDeletingIds((s) => [...s, kw.id]);
-                          const res = await fetch(`/api/keywords?id=${encodeURIComponent(kw.id)}`, {
-                            method: "DELETE",
-                          });
-                          if (!res.ok) {
-                            const body = await res.json().catch(() => ({}));
-                            throw new Error(body?.error || `HTTP ${res.status}`);
-                          }
-                          await reload();
-                        } catch (err) {
-                          console.error("Failed to delete keyword", err);
-                        } finally {
-                          setDeletingIds((s) => s.filter((id) => id !== kw.id));
-                        }
-                      }}
-                      disabled={deletingIds.includes(kw.id)}
-                    >
-                      <IconX />
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={2} className="h-24 text-center">
-                  No keywords found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-sm text-muted-foreground">
-            Page {page + 1} of {pageCount}
-          </span>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage(0)} disabled={page === 0}>
-              <IconChevronsLeft />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0}>
-              <IconChevronLeft />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= pageCount - 1}>
-              <IconChevronRight />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setPage(pageCount - 1)} disabled={page >= pageCount - 1}>
-              <IconChevronsRight />
-            </Button>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center text-destructive">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : paginatedKeywords.length ? (
+                paginatedKeywords.map((kw) => (
+                  <TableRow key={kw.id}>
+                    <TableCell className="font-medium">{kw.keyword}</TableCell>
+                    <TableCell className="text-right">{kw.createdAt ? formatTimestamp(kw.createdAt) : "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={deletingIds.includes(kw.id)}>
+                            <IconX />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Potwierdź usunięcie</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Czy napewno chcesz usunąć słowo kluczowe: {kw.keyword}?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                try {
+                                  setDeletingIds((s) => [...s, kw.id]);
+                                  const res = await fetch(`/api/keywords?id=${encodeURIComponent(kw.id)}`, {
+                                    method: "DELETE",
+                                  });
+                                  if (!res.ok) {
+                                    const body = await res.json().catch(() => ({}));
+                                    throw new Error(body?.error || `HTTP ${res.status}`);
+                                  }
+                                  await reload();
+                                } catch (err) {
+                                  console.error("Failed to delete keyword", err);
+                                } finally {
+                                  setDeletingIds((s) => s.filter((id) => id !== kw.id));
+                                }
+                              }}
+                            >
+                              Usuń
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    No keywords found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-muted-foreground">
+              Page {page + 1} of {pageCount}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(0)} disabled={page === 0}>
+                <IconChevronsLeft />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0}>
+                <IconChevronLeft />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= pageCount - 1}>
+                <IconChevronRight />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(pageCount - 1)}
+                disabled={page >= pageCount - 1}
+              >
+                <IconChevronsRight />
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }
