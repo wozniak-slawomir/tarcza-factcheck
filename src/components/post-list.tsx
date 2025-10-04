@@ -19,6 +19,7 @@ import { topWordsFromPosts } from "@/lib/utils";
 import TrendingChart from "./trending-chart";
 import type { ChartConfig } from "@/components/ui/chart";
 import { Textarea } from "./ui/textarea";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 type PostItem = { id: string; text: string; createdAt: string | null };
 
@@ -253,7 +254,14 @@ export default function PostList() {
               ) : paginatedPosts.length ? (
                 paginatedPosts.map((post) => (
                   <TableRow key={post.id}>
-                    <TableCell className="font-medium max-w-xs truncate">{post.text}</TableCell>
+                    <TableCell className="font-medium max-w-xs truncate">
+                      <HoverCard>
+                        <HoverCardTrigger>{post.text}</HoverCardTrigger>
+                        <HoverCardContent side="top" align="start" className="w-fit max-w-sm text-sm leading-snug">
+                          {post.text}
+                        </HoverCardContent>
+                      </HoverCard>
+                    </TableCell>
                     <TableCell className="text-right">
                       {post.createdAt ? formatTimestamp(post.createdAt) : "-"}
                     </TableCell>
