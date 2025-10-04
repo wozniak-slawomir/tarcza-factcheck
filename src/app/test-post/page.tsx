@@ -127,7 +127,7 @@ export default function TestPostPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Test Post Matching</h1>
         <p className="text-muted-foreground">
-          Test how similar your text is to existing posts using MongoDB Vector Search with OpenAI embeddings.
+          Test how similar your text is to existing posts using Qdrant Vector Search with OpenAI embeddings.
         </p>
       </div>
 

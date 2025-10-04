@@ -1,4 +1,4 @@
-import { MongoDBService } from './MongoDBService';
+import { QdrantService } from './QdrantService';
 
 export interface DBService {
   getAllPosts(): Promise<string[]>;
@@ -14,7 +14,7 @@ let dbServiceInstance: DBService | null = null;
 
 export function getDBService(): DBService {
   if (!dbServiceInstance) {
-    dbServiceInstance = new MongoDBService();
+    dbServiceInstance = new QdrantService();
   }
   return dbServiceInstance;
 }

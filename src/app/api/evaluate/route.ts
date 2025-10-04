@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('API: Evaluating text similarity using Qdrant...');
     const dbService = getDBService();
     const similarity = await dbService.compareText(text);
     

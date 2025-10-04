@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { OPENAI_EMBEDDING_MODEL, OPENAI_CHAT_MODEL } from '@/lib/constants';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,7 +9,7 @@ export class OpenAIService {
   static async generateEmbedding(text: string): Promise<number[]> {
     try {
       const response = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
+        model: OPENAI_EMBEDDING_MODEL,
         input: text,
       });
       
@@ -22,7 +23,7 @@ export class OpenAIService {
   static async generateEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       const response = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
+        model: OPENAI_EMBEDDING_MODEL,
         input: texts,
       });
       
@@ -45,7 +46,7 @@ export class OpenAIService {
       });
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-5-nano',
+        model: OPENAI_CHAT_MODEL,
         messages,
       });
 

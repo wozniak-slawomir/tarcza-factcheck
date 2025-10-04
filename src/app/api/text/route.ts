@@ -3,10 +3,10 @@ import { getDBService } from '@/services/DBService';
 
 export async function GET() {
   try {
-    console.log('API: Fetching posts...');
+    console.log('API: Fetching posts from Qdrant...');
     const dbService = getDBService();
     const posts = await dbService.getPostsForDisplay();
-    console.log(`API: Returning ${posts.length} posts`);
+    console.log(`API: Returning ${posts.length} posts from Qdrant`);
     
     return NextResponse.json({ 
       success: true,
@@ -14,11 +14,11 @@ export async function GET() {
       posts: posts
     });
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching posts from Qdrant:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: 'Failed to fetch posts' 
+        error: 'Failed to fetch posts from Qdrant' 
       },
       { status: 500 }
     );
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+<<<<<<< HEAD
     if (url && typeof url !== 'string') {
       return NextResponse.json(
         { 
@@ -54,22 +55,32 @@ export async function POST(request: NextRequest) {
     const dbService = getDBService();
     await dbService.addPost(text, url);
     console.log('API: Post added successfully');
+=======
+    console.log('API: Adding new post to Qdrant...');
+    const dbService = getDBService();
+    await dbService.addPost(text);
+    console.log('API: Post added successfully to Qdrant');
+>>>>>>> qdrant
 
     return NextResponse.json(
       { 
         success: true,
+<<<<<<< HEAD
         message: 'Post added successfully',
         url: url || null
+=======
+        message: 'Post added successfully to Qdrant' 
+>>>>>>> qdrant
       },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error processing text:', error);
+    console.error('Error processing text in Qdrant:', error);
     
     return NextResponse.json(
       { 
         success: false,
-        error: 'Failed to process text' 
+        error: 'Failed to process text in Qdrant' 
       },
       { status: 500 }
     );
@@ -91,21 +102,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    console.log('API: Deleting post with ID:', id);
+    console.log('API: Deleting post with ID from Qdrant:', id);
     const dbService = getDBService();
     await dbService.deletePost(id);
-    console.log('API: Post deleted successfully');
+    console.log('API: Post deleted successfully from Qdrant');
 
     return NextResponse.json({
       success: true,
-      message: 'Post deleted successfully',
+      message: 'Post deleted successfully from Qdrant',
     });
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('Error deleting post from Qdrant:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: 'Failed to delete post' 
+        error: 'Failed to delete post from Qdrant' 
       },
       { status: 500 }
     );
