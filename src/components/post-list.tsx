@@ -17,7 +17,7 @@ export default function PostList() {
   const [addingPost, setAddingPost] = React.useState(false);
   const pageSize = 8;
   const { posts, loading, error, reloadPosts } = usePosts();
-  const { topWords, chartData, chartConfig } = useTrends(posts);
+  const { trends, chartData, chartConfig } = useTrends(posts, { windowMinutes: 60, topN: 8, minRecentOccurrences: 1 });
   const { page, setPage, pageCount, paginatedItems } = usePagination(posts.length, pageSize);
 
   const paginatedPosts = paginatedItems(posts);
@@ -80,7 +80,7 @@ export default function PostList() {
         </CardContent>
       </Card>
       <Card className="@container/card">
-        <TrendsSection topWords={topWords} chartData={chartData} chartConfig={chartConfig} />
+        <TrendsSection trends={trends} chartData={chartData} chartConfig={chartConfig} />
       </Card>
     </div>
   );
