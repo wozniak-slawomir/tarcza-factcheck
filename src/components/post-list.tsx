@@ -22,13 +22,13 @@ export default function PostList() {
 
   const paginatedPosts = paginatedItems(posts);
 
-  const handleAddPost = async (text: string) => {
+  const handleAddPost = async (text: string, url: string | undefined) => {
     try {
       setAddingPost(true);
       const res = await fetch("/api/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, url }),
       });
       if (!res.ok) throw new Error("Failed to add post");
 
@@ -63,15 +63,7 @@ export default function PostList() {
           <CardDescription>
             <AddPostForm onAddPost={handleAddPost} addingPost={addingPost} />
           </CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">
-            Wszystkie posty: {posts.length}
-          </CardTitle>
-          <CardAction>
-            <Button onClick={() => {}} disabled={addingPost}>
-              <IconCirclePlus />
-              Dodaj
-            </Button>
-          </CardAction>
+          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Wszystkie posty: {posts.length}</CardTitle>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
@@ -82,26 +74,13 @@ export default function PostList() {
                 <TableHead className="text-right w-[50px]">Akcje</TableHead>
               </TableRow>
             </TableHeader>
-            <PostsTable
-              posts={paginatedPosts}
-              loading={loading}
-              error={error}
-              onDeletePost={handleDeletePost}
-            />
+            <PostsTable posts={paginatedPosts} loading={loading} error={error} onDeletePost={handleDeletePost} />
           </Table>
-          <PaginationControls
-            page={page}
-            pageCount={pageCount}
-            onPageChange={setPage}
-          />
+          <PaginationControls page={page} pageCount={pageCount} onPageChange={setPage} />
         </CardContent>
       </Card>
       <Card className="@container/card">
-        <TrendsSection
-          topWords={topWords}
-          chartData={chartData}
-          chartConfig={chartConfig}
-        />
+        <TrendsSection topWords={topWords} chartData={chartData} chartConfig={chartConfig} />
       </Card>
     </div>
   );

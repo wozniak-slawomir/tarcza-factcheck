@@ -4,6 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { IconCirclePlus } from "@tabler/icons-react";
+import { Input } from "./ui/input";
 
 interface AddPostFormProps {
   onAddPost: (text: string) => Promise<void>;
@@ -12,6 +13,7 @@ interface AddPostFormProps {
 
 export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
   const [newText, setNewText] = React.useState("");
+  const [newUrl, setNewUrl] = React.useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +22,17 @@ export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
     try {
       await onAddPost(newText.trim());
       setNewText("");
+      setNewUrl("");
     } catch (error) {
       console.error("Error adding post:", error);
       alert("Nie udało się dodać posta");
     }
+  };
+
+  const isValidUrl = (raw: string) => {
+    if (!raw) return true; // optional
+
+    return /^https?:\/\//i.test(raw.trim());
   };
 
   return (
@@ -47,6 +56,35 @@ export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
             {newText.length}
           </span>
           <span className="text-muted-foreground">/1500</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Input
+          placeholder="Opcjonalny URL (http:// lub https://)"
+          value={newUrl}
+          onChange={(e) => setNewUrl(e.target.value)}
+          className={!isValidUrl(newUrl) ? "border-destructive focus-visible:border-destructive" : ""}
+          maxLength={500}
+        />
+
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>
+            {newUrl
+              ? isValidUrl(newUrl)
+                ? "URL zostanie zapisany osobno"
+                : "Niepoprawny format URL"
+              : "Pole opcjonalne"}
+          </span>
+
+          {newUrl && (
+            <button
+              type="button"
+              onClick={() => setNewUrl("")}
+              className="text-[10px] underline text-primary hover:text-primary/80"
+            >
+              Wyczyść
+            </button>
+          )}
         </div>
       </div>
       <Button type="submit" disabled={addingPost || !newText.trim()}>
