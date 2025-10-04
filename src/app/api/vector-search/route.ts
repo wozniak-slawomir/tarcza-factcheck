@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDBService } from '@/services/DBService';
-import { SIMILARITY_THRESHOLD } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text } = body;
+    const { text, limit = 10 } = body;
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -15,16 +14,16 @@ export async function POST(request: NextRequest) {
     }
 
     const dbService = getDBService();
-    const similarity = await dbService.compareText(text);
-    
-    const flagged = similarity > SIMILARITY_THRESHOLD;
+    const results = await dbService.vectorSearch(text, limit);
 
     return NextResponse.json({ 
-      flagged,
-      similarity: parseFloat(similarity.toFixed(4)) // Return as float with 4 decimal places
+      results: results.map(result => ({
+        ...result,
+        score: parseFloat(result.score.toFixed(4)) // Return as float with 4 decimal places
+      }))
     });
   } catch (error) {
-    console.error('Error in /api/evaluate:', error);
+    console.error('Error in /api/vector-search:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

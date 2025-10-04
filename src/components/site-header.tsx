@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
@@ -8,6 +10,14 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">Słowa klucze</h1>
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/test-post">Test Post</Link>
+          </Button>
+        </div>
       </div>
     </header>
   );

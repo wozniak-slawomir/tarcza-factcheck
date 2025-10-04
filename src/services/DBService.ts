@@ -6,6 +6,7 @@ export interface DBService {
   deletePost(id: string): Promise<void>;
   getPostsForDisplay(): Promise<Array<{ id: string; text: string; createdAt?: string }>>;
   compareText(text: string): Promise<number>;
+  vectorSearch(text: string, limit?: number): Promise<Array<{ id: string; text: string; score: number; title?: string; content?: string; tag_id?: string }>>;
 }
 
 let dbServiceInstance: DBService | null = null;
