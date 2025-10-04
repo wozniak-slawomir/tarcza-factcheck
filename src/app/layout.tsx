@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tarcza - factcheck",
   description: "Hack Yeah 2025",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
