@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { IconTrash } from "@tabler/icons-react";
 import { PostItem } from "@/hooks/use-posts";
 import { formatTimestamp } from "@/lib/date-utils";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 interface PostsTableProps {
   posts: PostItem[];
@@ -66,10 +67,15 @@ export function PostsTable({ posts, loading, error, onDeletePost }: PostsTablePr
     <TableBody>
       {posts.map((post) => (
         <TableRow key={post.id}>
-          <TableCell className="font-medium max-w-xs truncate">{post.text}</TableCell>
-          <TableCell className="text-right">
-            {post.createdAt ? formatTimestamp(post.createdAt) : "-"}
+          <TableCell className="font-medium max-w-xs truncate">
+            <HoverCard>
+              <HoverCardTrigger>{post.text}</HoverCardTrigger>
+              <HoverCardContent side="top" align="start" className="max-w-lg">
+                {post.text || "-"}
+              </HoverCardContent>
+            </HoverCard>
           </TableCell>
+          <TableCell className="text-right">{post.createdAt ? formatTimestamp(post.createdAt) : "-"}</TableCell>
           <TableCell className="text-right">
             <Button variant="ghost" size="sm" onClick={() => handleDelete(post.id)}>
               <IconTrash className="h-4 w-4" />
