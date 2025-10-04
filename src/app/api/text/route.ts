@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text } = body;
+    const { text, url } = body;
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -40,15 +40,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (url && typeof url !== 'string') {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'URL must be a string' 
+        },
+        { status: 400 }
+      );
+    }
+
     console.log('API: Adding new post...');
     const dbService = getDBService();
-    await dbService.addPost(text);
+    await dbService.addPost(text, url);
     console.log('API: Post added successfully');
 
     return NextResponse.json(
       { 
         success: true,
-        message: 'Post added successfully' 
+        message: 'Post added successfully',
+        url: url || null
       },
       { status: 201 }
     );

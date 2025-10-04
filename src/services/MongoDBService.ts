@@ -29,7 +29,7 @@ export class MongoDBService implements DBService {
     }
   }
 
-  async addPost(text: string): Promise<void> {
+  async addPost(text: string, url?: string): Promise<void> {
     const client = await this.getClient();
     try {
       // Generate embedding for the new post using searchableText
@@ -45,6 +45,7 @@ export class MongoDBService implements DBService {
         tag_id: 'general', // Default tag, you can modify this
         searchableText: text,
         embedding: embedding,
+        url: url || null,
         createdAt: new Date()
       };
       
@@ -106,6 +107,7 @@ export class MongoDBService implements DBService {
         id: p._id.toString(),
         text: p.searchableText, // Use searchableText for display
         createdAt: p.createdAt?.toISOString(),
+        url: p.url || undefined,
       }));
     } finally {
       await client.close();
@@ -202,5 +204,98 @@ export class MongoDBService implements DBService {
     } finally {
       await client.close();
     }
+  }
+
+  async checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }> {
+    const client = await this.getClient();
+    try {
+      const db = client.db(dbName);
+      const collection = db.collection(collectionName);
+      
+      const posts = await collection.find(
+        { url: { $exists: true, $ne: null } },
+        { projection: { url: 1 } }
+      ).toArray();
+      
+      if (posts.length === 0) {
+        return { similarity: 0, warning: false };
+      }
+      
+      let maxSimilarity = 0;
+      let matchedUrl: string | undefined;
+      
+      for (const post of posts) {
+        if (post.url) {
+          const similarity = this.calculateURLSimilarity(url, post.url);
+          if (similarity > maxSimilarity) {
+            maxSimilarity = similarity;
+            matchedUrl = post.url;
+          }
+        }
+      }
+      
+      const warning = maxSimilarity >= 0.9;
+      
+      return {
+        similarity: maxSimilarity,
+        matchedUrl: warning ? matchedUrl : undefined,
+        warning
+      };
+    } finally {
+      await client.close();
+    }
+  }
+
+  private calculateURLSimilarity(url1: string, url2: string): number {
+    const normalize = (url: string) => {
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.toLowerCase() + urlObj.pathname.toLowerCase().replace(/\/+$/, '');
+      } catch {
+        return url.toLowerCase().replace(/\/+$/, '');
+      }
+    };
+
+    const normalized1 = normalize(url1);
+    const normalized2 = normalize(url2);
+
+    if (normalized1 === normalized2) {
+      return 1.0;
+    }
+
+    const distance = this.levenshteinDistance(normalized1, normalized2);
+    const maxLength = Math.max(normalized1.length, normalized2.length);
+    
+    if (maxLength === 0) return 1.0;
+    
+    return 1 - (distance / maxLength);
+  }
+
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+
+    return matrix[str2.length][str1.length];
   }
 }
