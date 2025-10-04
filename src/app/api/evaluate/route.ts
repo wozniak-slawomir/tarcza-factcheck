@@ -19,6 +19,24 @@ export async function POST(request: NextRequest) {
     const dbService = getDBService();
     const similarity = await dbService.compareText(text);
     
+    // If similarity is below threshold, skip expensive AI analysis
+    if (similarity <= SIMILARITY_THRESHOLD) {
+      console.log(`Similarity ${similarity.toFixed(4)} below threshold ${SIMILARITY_THRESHOLD}, skipping AI analysis`);
+      return NextResponse.json({ 
+        flagged: false,
+        similarity: parseFloat(similarity.toFixed(4)),
+        relatedPostsCount: 0,
+        evaluation: {
+          verdict: 'true',
+          confidence: 1.0 - similarity, // Higher confidence for lower similarity
+          reasoning: 'Content similarity is below threshold, no significant matches found in database',
+          recommendation: 'approve'
+        },
+      });
+    }
+
+    // Only perform expensive AI analysis when similarity threshold is met
+    console.log(`Similarity ${similarity.toFixed(4)} above threshold ${SIMILARITY_THRESHOLD}, performing AI analysis`);
     const relatedPosts = await dbService.vectorSearch(text, 5);
     
     const relatedPostsContext = relatedPosts.map((post, index) => 
@@ -57,7 +75,7 @@ Provide a JSON response with the following structure:
         evaluation = JSON.parse(jsonMatch[0]);
       } else {
         evaluation = {
-          verdict: similarity > SIMILARITY_THRESHOLD ? 'uncertain' : 'uncertain',
+          verdict: 'uncertain',
           confidence: 0.5,
           reasoning: aiResponse,
           recommendation: 'review'
@@ -73,7 +91,7 @@ Provide a JSON response with the following structure:
       };
     }
 
-    const flagged = similarity > SIMILARITY_THRESHOLD || evaluation.recommendation === 'reject';
+    const flagged = evaluation.recommendation === 'reject';
 
     return NextResponse.json({ 
       flagged,
