@@ -17,9 +17,26 @@ interface SearchResult {
   tag_id?: string;
 }
 
+interface Evaluation {
+  verdict: 'true' | 'false' | 'uncertain';
+  confidence: number;
+  reasoning: string;
+  recommendation: 'approve' | 'review' | 'reject';
+}
+
+interface RelatedPost {
+  id: string;
+  title?: string;
+  text: string;
+  score: number;
+}
+
 interface EvaluationResult {
   flagged: boolean;
   similarity: number;
+  relatedPostsCount: number;
+  evaluation: Evaluation;
+  relatedPosts: RelatedPost[];
 }
 
 export default function TestPostPage() {
@@ -159,43 +176,30 @@ export default function TestPostPage() {
           </CardContent>
         </Card>
 
-        {/* Evaluation Result */}
         {evaluationResult && (
           <Card>
             <CardHeader>
               <CardTitle>Evaluation Result</CardTitle>
               <CardDescription>
-                Similarity analysis and flagging decision
+                AI-powered evaluation and similarity analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4 max-w-[1000px]">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Similarity Score:</span>
-                    <Badge 
-                      className={`${getScoreColor(evaluationResult.similarity)} text-white`}
-                    >
-                      {(evaluationResult.similarity * 100).toFixed(2)}%
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      ({getScoreText(evaluationResult.similarity)})
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">Flagged:</span>
-                  <Badge variant={evaluationResult.flagged ? "destructive" : "secondary"}>
-                    {evaluationResult.flagged ? 'YES' : 'NO'}
+                  <span className="font-medium">Similarity Score:</span>
+                  <Badge 
+                    className={`${getScoreColor(evaluationResult.similarity)} text-white`}
+                  >
+                    {(evaluationResult.similarity * 100).toFixed(2)}%
                   </Badge>
                 </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${getScoreColor(evaluationResult.similarity)}`}
-                    style={{ width: `${evaluationResult.similarity * 100}%` }}
-                  ></div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">AI Reasoning:</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {evaluationResult.evaluation.reasoning}
+                  </p>
                 </div>
               </div>
             </CardContent>
