@@ -32,4 +32,29 @@ export class OpenAIService {
       throw new Error('Failed to generate embeddings');
     }
   }
+
+  static async prompt(
+    prompt: string,
+  ): Promise<string> {
+    try {
+      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+      
+      messages.push({
+        role: 'user',
+        content: prompt,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+
+      return response.choices[0]?.message?.content || '';
+    } catch (error) {
+      console.error('Error generating response:', error);
+      throw new Error('Failed to generate response');
+    }
+  }
 }
