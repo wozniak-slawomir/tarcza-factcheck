@@ -1,27 +1,30 @@
 "use client";
 
-import * as React from "react";
 import { Input } from "@/components/ui/input";
 import {
-  IconTrendingDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
   IconCirclePlus,
+  IconX,
+  IconLoader,
 } from "@tabler/icons-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React from "react";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "./ui/alert-dialog";
 
 type KeywordItem = { id: string; keyword: string; createdAt: string | null };
 
@@ -55,13 +58,33 @@ function useKeywords() {
     return () => ac.abort();
   }, []);
 
-  return { keywords, loading, error } as const;
+  // expose reload so caller can refresh after mutations
+  const reload = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/keywords");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setKeywords(Array.isArray(data.keywords) ? data.keywords : []);
+    } catch (err) {
+      console.error("Failed to reload keywords", err);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { keywords, loading, error, reload } as const;
 }
 
-export default function KeywordList() {
+export default function KeywordsTable() {
   const [page, setPage] = React.useState(0);
+  const [inputValue, setInputValue] = React.useState<string>("");
   const pageSize = 8;
-  const { keywords, loading, error } = useKeywords();
+  const { keywords, loading, error, reload } = useKeywords();
+  const [adding, setAdding] = React.useState(false);
+  const [deletingIds, setDeletingIds] = React.useState<string[]>([]);
 
   const pageCount = Math.max(1, Math.ceil(keywords.length / pageSize));
 
@@ -94,20 +117,56 @@ export default function KeywordList() {
     });
   };
 
+  const addKeyword = (keyword: string) => {
+    return (async () => {
+      if (!keyword || !keyword.trim()) return;
+      try {
+        setAdding(true);
+        const res = await fetch("/api/keywords", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ keyword: keyword.trim() }),
+        });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody?.error || `HTTP ${res.status}`);
+        }
+        // clear input and reload list
+        setInputValue("");
+        await reload();
+      } catch (err) {
+        console.error("Failed to add keyword", err);
+        // optional: expose an error UI; for now, keep console log
+      } finally {
+        setAdding(false);
+      }
+    })();
+  };
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
+    <>
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>
-            <Input />
+            <form
+              action="submit"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addKeyword(inputValue);
+              }}
+              className="flex gap-5"
+            >
+              <Input value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
+              <Button onClick={() => addKeyword(inputValue)} disabled={adding} className="relative">
+                <span className={`flex items-center gap-2 ${adding ? "opacity-0" : ""}`}>
+                  <IconCirclePlus />
+                  Dodaj
+                </span>
+                {adding && <IconLoader className="absolute right-1/2 top-1/2 -translate-y-1/2 translate-x-1/2" />}
+              </Button>
+            </form>
           </CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Słowa kluczowe:</CardTitle>
-          <CardAction>
-            <Button>
-              <IconCirclePlus />
-              Dodaj
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
@@ -115,6 +174,7 @@ export default function KeywordList() {
               <TableRow>
                 <TableHead className="w-[100px]">Słowo</TableHead>
                 <TableHead className="text-right">Data dodania</TableHead>
+                <TableHead className="text-right">Akcje</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,6 +195,47 @@ export default function KeywordList() {
                   <TableRow key={kw.id}>
                     <TableCell className="font-medium">{kw.keyword}</TableCell>
                     <TableCell className="text-right">{kw.createdAt ? formatTimestamp(kw.createdAt) : "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={deletingIds.includes(kw.id)}>
+                            <IconX />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Potwierdź usunięcie</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Czy napewno chcesz usunąć słowo kluczowe: {kw.keyword}?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                try {
+                                  setDeletingIds((s) => [...s, kw.id]);
+                                  const res = await fetch(`/api/keywords?id=${encodeURIComponent(kw.id)}`, {
+                                    method: "DELETE",
+                                  });
+                                  if (!res.ok) {
+                                    const body = await res.json().catch(() => ({}));
+                                    throw new Error(body?.error || `HTTP ${res.status}`);
+                                  }
+                                  await reload();
+                                } catch (err) {
+                                  console.error("Failed to delete keyword", err);
+                                } finally {
+                                  setDeletingIds((s) => s.filter((id) => id !== kw.id));
+                                }
+                              }}
+                            >
+                              Usuń
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -172,24 +273,6 @@ export default function KeywordList() {
           </div>
         </CardContent>
       </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Keywords</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">5</CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period <IconTrendingDown className="size-4" />
-          </div>
-          <div className="text-muted-foreground">Acquisition needs attention</div>
-        </CardFooter>
-      </Card>
-    </div>
+    </>
   );
 }
