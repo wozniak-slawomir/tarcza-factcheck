@@ -12,6 +12,64 @@ const qdrantClient = new QdrantClient({
 const COLLECTION_NAME = process.env.QDRANT_COLLECTION_NAME || 'news_articles';
 
 export class QdrantService implements DBService {
+  // Helper method to normalize URLs for comparison
+  private normalizeUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const normalized = `${urlObj.hostname.toLowerCase()}${urlObj.pathname.toLowerCase()}`.replace(/\/+$/, '');
+      return normalized;
+    } catch (error) {
+      // Fallback to simple normalization if URL parsing fails
+      return url.toLowerCase().replace(/\/+$/, '');
+    }
+  }
+
+  // Levenshtein distance algorithm for string similarity
+  private calculateLevenshteinDistance(str1: string, str2: string): number {
+    const m = str1.length;
+    const n = str2.length;
+    const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+    for (let i = 0; i <= m; i++) {
+      dp[i][0] = i;
+    }
+    for (let j = 0; j <= n; j++) {
+      dp[0][j] = j;
+    }
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (str1[i - 1] === str2[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = Math.min(
+            dp[i - 1][j - 1] + 1, // substitution
+            dp[i - 1][j] + 1,     // deletion
+            dp[i][j - 1] + 1      // insertion
+          );
+        }
+      }
+    }
+
+    return dp[m][n];
+  }
+
+  // Calculate similarity score between two URLs
+  private calculateUrlSimilarity(url1: string, url2: string): number {
+    const normalized1 = this.normalizeUrl(url1);
+    const normalized2 = this.normalizeUrl(url2);
+
+    if (normalized1 === normalized2) {
+      return 1.0;
+    }
+
+    const distance = this.calculateLevenshteinDistance(normalized1, normalized2);
+    const maxLength = Math.max(normalized1.length, normalized2.length);
+    const similarity = 1 - (distance / maxLength);
+
+    return similarity;
+  }
+
   async getAllPosts(): Promise<string[]> {
     try {
       // Check if collection exists
@@ -28,14 +86,16 @@ export class QdrantService implements DBService {
         with_vector: false
       });
 
-      return scrollResult.points.map(point => point.payload.searchableText || point.payload.content);
+      return scrollResult.points.map(point => 
+        (point.payload?.searchableText || point.payload?.content) as string
+      );
     } catch (error) {
       console.error('Error fetching posts from Qdrant:', error);
       return [];
     }
   }
 
-  async addPost(text: string): Promise<void> {
+  async addPost(text: string, url?: string): Promise<void> {
     try {
       // Check if collection exists, create if not
       try {
@@ -66,7 +126,8 @@ export class QdrantService implements DBService {
           content: text,
           tag_id: 'general',
           createdAt: new Date().toISOString(),
-          searchableText: text.toLowerCase()
+          searchableText: text.toLowerCase(),
+          url: url || null
         }
       };
 
@@ -93,7 +154,7 @@ export class QdrantService implements DBService {
     }
   }
 
-  async getPostsForDisplay(): Promise<Array<{ id: string; text: string; createdAt?: string }>> {
+  async getPostsForDisplay(): Promise<Array<{ id: string; text: string; createdAt?: string; url?: string }>> {
     try {
       console.log('Fetching posts from Qdrant collection...');
       
@@ -113,8 +174,9 @@ export class QdrantService implements DBService {
 
       const posts = scrollResult.points.map(point => ({
         id: point.id.toString(),
-        text: point.payload.searchableText || point.payload.content,
-        createdAt: point.payload.createdAt
+        text: (point.payload?.searchableText || point.payload?.content) as string,
+        createdAt: point.payload?.createdAt as string | undefined,
+        url: point.payload?.url as string | undefined
       }));
 
       console.log(`Found ${posts.length} posts in Qdrant collection`);
@@ -182,15 +244,68 @@ export class QdrantService implements DBService {
 
       return searchResult.map(point => ({
         id: point.id.toString(),
-        text: point.payload.searchableText || point.payload.content,
-        title: point.payload.title,
-        content: point.payload.content,
-        tag_id: point.payload.tag_id,
+        text: (point.payload?.searchableText || point.payload?.content) as string,
+        title: point.payload?.title as string | undefined,
+        content: point.payload?.content as string | undefined,
+        tag_id: point.payload?.tag_id as string | undefined,
         score: point.score || 0
       }));
     } catch (error) {
       console.error('Error performing vector search in Qdrant:', error);
       return [];
+    }
+  }
+
+  async checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }> {
+    try {
+      console.log('Checking URL similarity in Qdrant...');
+      
+      // Check if collection exists
+      try {
+        await qdrantClient.getCollection(COLLECTION_NAME);
+      } catch (error) {
+        console.log('Collection does not exist');
+        return { similarity: 0, warning: false };
+      }
+
+      // Fetch all documents with URLs
+      const scrollResult = await qdrantClient.scroll(COLLECTION_NAME, {
+        limit: 1000,
+        with_payload: true,
+        with_vector: false
+      });
+
+      let highestSimilarity = 0;
+      let mostSimilarUrl: string | undefined;
+
+      // Compare with all URLs in the database
+      for (const point of scrollResult.points) {
+        if (point.payload && point.payload.url) {
+          const existingUrl = point.payload.url as string;
+          const similarity = this.calculateUrlSimilarity(url, existingUrl);
+
+          if (similarity > highestSimilarity) {
+            highestSimilarity = similarity;
+            mostSimilarUrl = existingUrl;
+          }
+        }
+      }
+
+      const warning = highestSimilarity >= 0.9;
+
+      console.log(`Highest URL similarity: ${(highestSimilarity * 100).toFixed(2)}%`);
+      if (warning && mostSimilarUrl) {
+        console.log(`Matched URL: ${mostSimilarUrl}`);
+      }
+
+      return {
+        similarity: highestSimilarity,
+        matchedUrl: warning ? mostSimilarUrl : undefined,
+        warning
+      };
+    } catch (error) {
+      console.error('Error checking URL in Qdrant:', error);
+      throw error;
     }
   }
 }

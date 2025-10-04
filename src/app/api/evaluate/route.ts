@@ -24,14 +24,8 @@ export async function POST(request: NextRequest) {
       console.log(`Similarity ${similarity.toFixed(4)} below threshold ${SIMILARITY_THRESHOLD}, skipping AI analysis`);
       return NextResponse.json({ 
         flagged: false,
-        similarity: parseFloat(similarity.toFixed(4)),
-        relatedPostsCount: 0,
-        evaluation: {
-          verdict: 'true',
-          confidence: 1.0 - similarity, // Higher confidence for lower similarity
+        confidence: parseFloat(similarity.toFixed(4)),
           reasoning: 'Content similarity is below threshold, no significant matches found in database',
-          recommendation: 'approve'
-        },
       });
     }
 

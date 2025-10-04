@@ -42,13 +42,14 @@ export async function POST(request: NextRequest) {
 
     console.log('API: Adding new post to Qdrant...');
     const dbService = getDBService();
-    await dbService.addPost(text);
+    await dbService.addPost(text, url);
     console.log('API: Post added successfully to Qdrant');
 
     return NextResponse.json(
       { 
         success: true,
-        message: 'Post added successfully to Qdrant'
+        message: 'Post added successfully to Qdrant',
+        url: url || null
       },
       { status: 201 }
     );
