@@ -40,37 +40,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-<<<<<<< HEAD
-    if (url && typeof url !== 'string') {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'URL must be a string' 
-        },
-        { status: 400 }
-      );
-    }
-
-    console.log('API: Adding new post...');
-    const dbService = getDBService();
-    await dbService.addPost(text, url);
-    console.log('API: Post added successfully');
-=======
     console.log('API: Adding new post to Qdrant...');
     const dbService = getDBService();
     await dbService.addPost(text);
     console.log('API: Post added successfully to Qdrant');
->>>>>>> qdrant
 
     return NextResponse.json(
       { 
         success: true,
-<<<<<<< HEAD
-        message: 'Post added successfully',
-        url: url || null
-=======
-        message: 'Post added successfully to Qdrant' 
->>>>>>> qdrant
+        message: 'Post added successfully to Qdrant'
       },
       { status: 201 }
     );
