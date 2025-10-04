@@ -1,10 +1,42 @@
-import Link from "next/link";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import PostList from "@/components/post-list";
 
 export default function Page() {
   return (
-    <div className="flex h-screen text-9xl w-full items-center justify-center gap-8">
-      <Link href="/dashboard" className="hover:underline">DASHBOARD</Link>
-      <Link href="/test-post" className="hover:underline">TEST POST</Link>
-    </div>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <PostList />
+              {/* <SectionCards /> */}
+              {/* <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div> */}
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
+
+//TODO: What should the dashboard have?
+//1. List of topics, that are supposed to be flagged as false/true
+//2. List of recent activity
+//3. Reviewed today
+//4. Most sus topics
+//5. Reviewed by you, linechart
+
+// Toast notifications: undo, success, error
