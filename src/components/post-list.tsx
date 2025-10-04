@@ -77,7 +77,8 @@ export default function PostList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60%]">Tekst</TableHead>
+                <TableHead className="w-[50%]">Tekst</TableHead>
+                <TableHead className="w-[25%]">URL</TableHead>
                 <TableHead className="text-right">Data dodania</TableHead>
                 <TableHead className="text-right w-[50px]">Akcje</TableHead>
               </TableRow>

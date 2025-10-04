@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconExternalLink } from "@tabler/icons-react";
 import { PostItem } from "@/hooks/use-posts";
 import { formatTimestamp } from "@/lib/date-utils";
 
@@ -30,7 +30,7 @@ export function PostsTable({ posts, loading, error, onDeletePost }: PostsTablePr
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={3} className="h-24 text-center">
+          <TableCell colSpan={4} className="h-24 text-center">
             Ładowanie...
           </TableCell>
         </TableRow>
@@ -42,7 +42,7 @@ export function PostsTable({ posts, loading, error, onDeletePost }: PostsTablePr
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={3} className="h-24 text-center text-destructive">
+          <TableCell colSpan={4} className="h-24 text-center text-destructive">
             {error}
           </TableCell>
         </TableRow>
@@ -54,7 +54,7 @@ export function PostsTable({ posts, loading, error, onDeletePost }: PostsTablePr
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={3} className="h-24 text-center">
+          <TableCell colSpan={4} className="h-24 text-center">
             Brak postów w bazie.
           </TableCell>
         </TableRow>
@@ -67,6 +67,24 @@ export function PostsTable({ posts, loading, error, onDeletePost }: PostsTablePr
       {posts.map((post) => (
         <TableRow key={post.id}>
           <TableCell className="font-medium max-w-xs truncate">{post.text}</TableCell>
+          <TableCell className="max-w-xs">
+            {post.url ? (
+              <div className="flex items-center gap-2">
+                <a 
+                  href={post.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 truncate text-sm underline"
+                  title={post.url}
+                >
+                  {post.url.length > 30 ? `${post.url.substring(0, 30)}...` : post.url}
+                </a>
+                <IconExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-sm">Brak URL</span>
+            )}
+          </TableCell>
           <TableCell className="text-right">
             {post.createdAt ? formatTimestamp(post.createdAt) : "-"}
           </TableCell>

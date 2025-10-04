@@ -9,7 +9,9 @@ export interface VectorSearchResult {
   score: number;
   title?: string;
   content?: string;
-  tag_id?: string;
+  is_fake?: boolean;
+  url?: string;
+  createdAt?: string;
 }
 
 export interface PostItem {
@@ -17,6 +19,8 @@ export interface PostItem {
   text: string;
   createdAt?: string;
   url?: string;
+  is_fake?: boolean;
+  title?: string;
 }
 
 // Qdrant configuration
@@ -47,7 +51,7 @@ export class VectorService {
     }
   }
 
-  async addPost(text: string, url?: string): Promise<void> {
+  async addPost(text: string, url?: string, is_fake?: boolean): Promise<void> {
     await this.ensureCollection();
 
     const embedding = await this.openAIService.generateEmbedding(text);
@@ -59,10 +63,9 @@ export class VectorService {
       payload: {
         title: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
         content: text,
-        tag_id: 'general',
         createdAt: new Date().toISOString(),
-        searchableText: text.toLowerCase(),
-        url: url || null
+        url: url || null,
+        is_fake: is_fake || false
       }
     };
 
@@ -99,7 +102,7 @@ export class VectorService {
     });
 
     return scrollResult.points.map(point =>
-      (point.payload?.searchableText || point.payload?.content) as string
+      (point.payload?.content) as string
     );
   }
 
@@ -114,9 +117,11 @@ export class VectorService {
 
     return scrollResult.points.map(point => ({
       id: point.id.toString(),
-      text: (point.payload?.searchableText || point.payload?.content) as string,
+      text: (point.payload?.content) as string,
       createdAt: point.payload?.createdAt as string | undefined,
-      url: point.payload?.url as string | undefined
+      url: point.payload?.url as string | undefined,
+      is_fake: point.payload?.is_fake as boolean | undefined,
+      title: point.payload?.title as string | undefined
     }));
   }
 
@@ -153,10 +158,12 @@ export class VectorService {
 
     return searchResult.map(point => ({
       id: point.id.toString(),
-      text: (point.payload?.searchableText || point.payload?.content) as string,
+      text: (point.payload?.content) as string,
       title: point.payload?.title as string | undefined,
       content: point.payload?.content as string | undefined,
-      tag_id: point.payload?.tag_id as string | undefined,
+      is_fake: point.payload?.is_fake as boolean | undefined,
+      url: point.payload?.url as string | undefined,
+      createdAt: point.payload?.createdAt as string | undefined,
       score: point.score || 0
     }));
   }
