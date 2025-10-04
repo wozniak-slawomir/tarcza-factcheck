@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tarcza - factcheck",
-  description: "Hack Yeah 2025",
+  title: "Tarcza Fact-Check | Panel dla Służb Publicznych",
+  description: "Rozszerzenie przeglądarki wykrywające dezinformację + dashboard dla pracowników administracji weryfikujących zgłoszenia obywateli.",
 };
 
 export default function RootLayout({
