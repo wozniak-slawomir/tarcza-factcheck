@@ -7,7 +7,7 @@ import { IconCirclePlus } from "@tabler/icons-react";
 import { Input } from "./ui/input";
 
 interface AddPostFormProps {
-  onAddPost: (text: string) => Promise<void>;
+  onAddPost: (text: string, url?: string) => Promise<void>;
   addingPost: boolean;
 }
 
@@ -20,7 +20,7 @@ export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
     if (!newText.trim()) return;
 
     try {
-      await onAddPost(newText.trim());
+      await onAddPost(newText.trim(), newUrl.trim() || undefined);
       setNewText("");
       setNewUrl("");
     } catch (error) {
