@@ -1,5 +1,15 @@
+"use client";
+
+import * as React from "react";
 import { Input } from "@/components/ui/input";
-import { IconTrendingDown, IconTrendingUp, IconCirclePlus } from "@tabler/icons-react";
+import {
+  IconTrendingDown,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+  IconCirclePlus,
+} from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -11,101 +21,79 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const keywords = [
-  {
-    keyword: "example keyword 1",
-    timestamp: "2023-01-01T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 2",
-    timestamp: "2023-01-02T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 3",
-    timestamp: "2023-01-03T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 4",
-    timestamp: "2023-01-04T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 5",
-    timestamp: "2023-01-05T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 1",
-    timestamp: "2023-01-01T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 2",
-    timestamp: "2023-01-02T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 3",
-    timestamp: "2023-01-03T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 4",
-    timestamp: "2023-01-04T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 5",
-    timestamp: "2023-01-05T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 1",
-    timestamp: "2023-01-01T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 2",
-    timestamp: "2023-01-02T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 3",
-    timestamp: "2023-01-03T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 4",
-    timestamp: "2023-01-04T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 5",
-    timestamp: "2023-01-05T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 1",
-    timestamp: "2023-01-01T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 2",
-    timestamp: "2023-01-02T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 3",
-    timestamp: "2023-01-03T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 4",
-    timestamp: "2023-01-04T00:00:00Z",
-  },
-  {
-    keyword: "example keyword 5",
-    timestamp: "2023-01-05T00:00:00Z",
-  },
-];
+type KeywordItem = { id: string; keyword: string; createdAt: string | null };
+
+function useKeywords() {
+  const [keywords, setKeywords] = React.useState<KeywordItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const ac = new AbortController();
+    async function load() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/keywords", { signal: ac.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setKeywords(Array.isArray(data.keywords) ? data.keywords : []);
+      } catch (err) {
+        if (typeof err === "object" && err !== null) {
+          const name = (err as { name?: unknown }).name;
+          if (name === "AbortError") return;
+        }
+        console.error("Failed to load keywords", err);
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+    return () => ac.abort();
+  }, []);
+
+  return { keywords, loading, error } as const;
+}
 
 export default function KeywordList() {
+  const [page, setPage] = React.useState(0);
+  const pageSize = 8;
+  const { keywords, loading, error } = useKeywords();
+
+  const pageCount = Math.max(1, Math.ceil(keywords.length / pageSize));
+
+  React.useEffect(() => {
+    if (page >= pageCount) setPage(Math.max(0, pageCount - 1));
+  }, [pageCount, page]);
+
+  const paginatedKeywords = keywords.slice(page * pageSize, (page + 1) * pageSize);
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec < 10) return "just now";
+    if (diffSec < 60) return `${diffSec} seconds ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? "" : "s"} ago`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? "" : "s"} ago`;
+    const diffDays = Math.floor(diffHour / 24);
+    if (diffDays <= 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+
+    // Older than 7 days - show localized date
+    return date.toLocaleDateString("pl-PL", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
       <Card className="@container/card">
@@ -123,7 +111,6 @@ export default function KeywordList() {
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
-            <TableCaption>A list of your recent keywords.</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Słowo</TableHead>
@@ -131,14 +118,58 @@ export default function KeywordList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {keywords.map((keyword, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{keyword.keyword}</TableCell>
-                  <TableCell className="text-right">{keyword.timestamp}</TableCell>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    Loading...
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center text-destructive">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : paginatedKeywords.length ? (
+                paginatedKeywords.map((kw) => (
+                  <TableRow key={kw.id}>
+                    <TableCell className="font-medium">{kw.keyword}</TableCell>
+                    <TableCell className="text-right">{kw.createdAt ? formatTimestamp(kw.createdAt) : "-"}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    No keywords found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-muted-foreground">
+              Page {page + 1} of {pageCount}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(0)} disabled={page === 0}>
+                <IconChevronsLeft />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0}>
+                <IconChevronLeft />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= pageCount - 1}>
+                <IconChevronRight />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(pageCount - 1)}
+                disabled={page >= pageCount - 1}
+              >
+                <IconChevronsRight />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <Card className="@container/card">
