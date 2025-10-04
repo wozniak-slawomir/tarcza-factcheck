@@ -28,7 +28,9 @@ import {
   IconLoader,
   IconThumbDown,
   IconThumbUp,
+  IconMinus,
   IconTrendingUp,
+  IconFlag,
 } from "@tabler/icons-react";
 import {
   ColumnDef,
@@ -147,19 +149,8 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Section Type",
-    cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
-        </Badge>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "grade",
-    header: "Oceny",
+    accessorKey: "pewność",
+    header: "Pewność faktu",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {row.original.status === "Done" ? (
@@ -172,37 +163,17 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
   },
   {
-    id: "actions2",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon">
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-  {
     id: "actions",
     cell: () => (
       <div className="flex gap-2">
-        <Button variant="outline" className="bg-accept hover:bg-accept/70">
-          <IconThumbDown />
-        </Button>
-        <Button variant="outline" className="bg-accept hover:bg-accept/70">
-          <IconThumbDown />
-        </Button>
-        <Button variant="outline" className="bg-decline hover:bg-decline/70">
+        <Button variant="outline" className="bg-accept hover:bg-accept/70" size="icon">
           <IconThumbUp />
+        </Button>
+        <Button variant="secondary" size="icon">
+          <IconMinus />
+        </Button>
+        <Button variant="outline" className="bg-decline hover:bg-decline/70" size="icon">
+          <IconThumbDown />
         </Button>
       </div>
     ),
