@@ -16,7 +16,9 @@ export const metadata: Metadata = {
   title: "Tarcza Fact-Check | Panel dla Służb Publicznych",
   description: "Rozszerzenie przeglądarki wykrywające dezinformację + dashboard dla pracowników administracji weryfikujących zgłoszenia obywateli.",
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
   },
 };
 
