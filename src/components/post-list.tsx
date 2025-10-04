@@ -227,12 +227,6 @@ export default function PostList() {
           <CardTitle className="text-2xl font-semibold tabular-nums mt-5">
             Wszystkie posty: {unflaggedPosts.length}
           </CardTitle>
-          <CardAction>
-            <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
-              <IconCirclePlus />
-              Dodaj
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
