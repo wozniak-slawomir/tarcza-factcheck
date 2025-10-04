@@ -57,7 +57,7 @@ export class EvaluationService {
       flagged: false,
       similarity: parseFloat(similarity.toFixed(4)),
       confidence: parseFloat(similarity.toFixed(4)),
-      reasoning: 'Content similarity is below threshold, no significant matches found in database',
+      reasoning: 'Podobieństwo treści jest poniżej progu, nie znaleziono istotnych dopasowań w bazie danych',
       relatedPostsCount: 0,
       relatedPosts: [],
     };
@@ -71,7 +71,7 @@ export class EvaluationService {
       flagged: true,
       similarity: parseFloat(similarity.toFixed(4)),
       confidence: 1.0, // Maximum confidence for exact duplicates
-      reasoning: 'Content is 100% identical to existing post in database - likely duplicate or spam',
+      reasoning: 'Treść jest w 100% identyczna z istniejącym postem w bazie danych - prawdopodobnie duplikat lub spam',
       relatedPostsCount: relatedPosts.length,
       relatedPosts: relatedPosts,
     };
@@ -121,11 +121,11 @@ Please analyze:
 2. Does it contain any potentially misleading or false information?
 3. What is your confidence level in this assessment?
 
-Provide a JSON response with the following structure:
+Provide a JSON response with the following structure. IMPORTANT: The "reasoning" field MUST be in Polish:
 {
   "flagged": true | false,
   "confidence": 0.0-1.0,
-  "reasoning": "brief explanation"
+  "reasoning": "krótkie wyjaśnienie po polsku"
 }`;
   }
 
@@ -170,7 +170,7 @@ Provide a JSON response with the following structure:
       flagged: false,
       similarity: parseFloat(similarity.toFixed(4)),
       confidence: 0.5,
-      reasoning: aiResponse || 'Unable to parse AI response',
+      reasoning: aiResponse || 'Nie można przetworzyć odpowiedzi AI',
       relatedPostsCount: 0,
       relatedPosts: [],
     };
