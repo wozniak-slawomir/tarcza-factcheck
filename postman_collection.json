@@ -1,0 +1,347 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Next Prompcik - Evaluate API",
+		"description": "API endpoints for keyword evaluation system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Keywords",
+			"item": [
+				{
+					"name": "Get All Keywords",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/keywords",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"keywords"
+							]
+						},
+						"description": "Retrieve all keywords from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Keyword",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"spam\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/keywords",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"keywords"
+							]
+						},
+						"description": "Add a new keyword to the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Keyword",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/keywords?id={{keywordId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"keywords"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{keywordId}}",
+									"description": "MongoDB ObjectId of the keyword to delete"
+								}
+							]
+						},
+						"description": "Delete a keyword by its ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Evaluation",
+			"item": [
+				{
+					"name": "Evaluate Text - Clean",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"This is a normal message without any issues\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"evaluate"
+							]
+						},
+						"description": "Evaluate clean text (should return flagged: false)"
+					},
+					"response": []
+				},
+				{
+					"name": "Evaluate Text - Flagged",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"This is a spam message\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"evaluate"
+							]
+						},
+						"description": "Evaluate text with flagged keyword (should return flagged: true)"
+					},
+					"response": []
+				},
+				{
+					"name": "Evaluate Text - Invalid Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"invalidField\": \"test\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"evaluate"
+							]
+						},
+						"description": "Test invalid request (should return 400 error)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test Workflow",
+			"item": [
+				{
+					"name": "1. Add test keyword",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Keyword added successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"keyword\": \"testword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/keywords",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"keywords"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Evaluate with test keyword",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Text is flagged\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.flagged).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"This message contains testword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"evaluate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get all keywords",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Keywords array exists\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('keywords');",
+									"    pm.expect(jsonData.keywords).to.be.an('array');",
+									"});",
+									"",
+									"// Save first keyword ID for deletion",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.keywords.length > 0) {",
+									"    pm.environment.set('keywordId', jsonData.keywords[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/keywords",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"keywords"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "keywordId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
