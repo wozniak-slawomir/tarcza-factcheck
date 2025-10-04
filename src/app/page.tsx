@@ -77,7 +77,7 @@ export default function LandingPage() {
   const numberFormatter = useMemo(() => new Intl.NumberFormat("pl-PL"), []);
   const compactFormatter = useMemo(
     () => new Intl.NumberFormat("pl-PL", { notation: "compact", maximumFractionDigits: 1 }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -112,8 +112,8 @@ export default function LandingPage() {
       <div className="pointer-events-none absolute -top-40 right-[-12%] h-[520px] w-[520px] rounded-full bg-[#ffeded] blur-3xl animate-blob" />
       <div className="pointer-events-none absolute left-[-10%] top-1/2 h-[480px] w-[480px] -translate-y-1/2 rounded-full bg-[#d6e4ff] blur-3xl animate-blob" />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-6 sm:px-10">
-        <div className="flex items-center gap-3">
+      <header className="relative z-10 flex items-center justify-end md:justify-between px-6 py-6 sm:px-10">
+        <div className="items-center gap-3 hidden md:flex">
           <span className="flex size-11 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
             <IconSparkles className="size-5 text-[#003a8c]" />
           </span>
@@ -150,10 +150,16 @@ export default function LandingPage() {
             <div className="grid items-center gap-16 md:grid-cols-[1.05fr,1fr]">
               <div className="space-y-8">
                 <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-                  Zatrzymaj <span className="bg-gradient-to-r from-[#d4213d] via-[#ff4757] to-[#ff6b81] bg-clip-text text-transparent">dezinformację</span> zanim się rozprzestrzeni.
+                  Zatrzymaj{" "}
+                  <span className="bg-gradient-to-r from-[#d4213d] via-[#ff4757] to-[#ff6b81] bg-clip-text text-transparent">
+                    dezinformację
+                  </span>{" "}
+                  zanim się rozprzestrzeni.
                 </h1>
                 <p className="max-w-xl text-lg text-slate-600">
-                  Tarcza łączy moc społeczności z wiedzą ekspertów. Miliony obywateli zgłaszają podejrzane treści przez rozszerzenie przeglądarki, a Ty weryfikujesz je w czasie rzeczywistym i publikujesz oficjalne odpowiedzi widoczne dla całej Polski.
+                  Tarcza łączy moc społeczności z wiedzą ekspertów. Miliony obywateli zgłaszają podejrzane treści przez
+                  rozszerzenie przeglądarki, a Ty weryfikujesz je w czasie rzeczywistym i publikujesz oficjalne
+                  odpowiedzi widoczne dla całej Polski.
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
                   <Button
@@ -216,7 +222,8 @@ export default function LandingPage() {
                         <p className="text-xs uppercase tracking-widest text-[#003a8c]/70">Werdykt wstępny</p>
                         <p className="mt-2 text-lg font-semibold text-slate-900">Fałszywa informacja potwierdzona</p>
                         <p className="mt-3 text-sm text-slate-600">
-                          Post flagowany przez 47 użytkowników rozszerzenia. AI wykryło rozbieżności z oficjalnymi źródłami. Gotowy projekt stanowiska.
+                          Post flagowany przez 47 użytkowników rozszerzenia. AI wykryło rozbieżności z oficjalnymi
+                          źródłami. Gotowy projekt stanowiska.
                         </p>
                       </div>
                       <div className="grid gap-3 rounded-xl border border-[#003a8c]/15 bg-white p-4">
@@ -240,7 +247,7 @@ export default function LandingPage() {
                     <p className="text-xs uppercase tracking-widest text-slate-500">Kanały przekazania</p>
                     <div className="mt-4 space-y-3 text-sm text-slate-700">
                       <div className="flex items-start gap-3">
-                        <span className="mt-0.5 size-2 rounded-full bg-[#003a8c]" />
+                        <span className="mt-2 size-2 rounded-full aspect-square bg-[#003a8c]" />
                         <p>Integracja z mObywatel – push do 4,2 mln użytkowników po akceptacji.</p>
                       </div>
                       <div className="flex items-start gap-3">
@@ -260,7 +267,8 @@ export default function LandingPage() {
                 >
                   <p className="font-semibold uppercase tracking-widest text-[#003a8c]/80">Transparentność</p>
                   <p className="mt-2 text-slate-600">
-                    Każda decyzja posiada metrykę podpisów i historię zmian zgodną z wymaganiami archiwizacji państwowej.
+                    Każda decyzja posiada metrykę podpisów i historię zmian zgodną z wymaganiami archiwizacji
+                    państwowej.
                   </p>
                 </div>
               </div>
@@ -270,7 +278,9 @@ export default function LandingPage() {
 
         <section className="px-6 sm:px-10">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">Dlaczego Tarcza jest niezbędna każdej instytucji</h2>
+            <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
+              Dlaczego Tarcza jest niezbędna każdej instytucji
+            </h2>
             <div className="mt-10 grid gap-6 md:grid-cols-2">
               {features.map((feature, index) => (
                 <div
@@ -314,18 +324,21 @@ export default function LandingPage() {
             <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-xl space-y-6">
                 <Badge className="bg-[#003a8c]/15 text-[#003a8c]">Przepływ usług</Badge>
-                <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">Od zgłoszenia do publikacji w czasie jednego newsroomu</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
+                  Od zgłoszenia do publikacji w czasie jednego newsroomu
+                </h2>
                 <p className="text-slate-600">
-                  Zbudowaliśmy najprostszy możliwy przepływ informacji – od palca obywatela na ekranie smartfona po oficjalne stanowisko państwa widoczne w całym kraju. Bez biurokracji, bez opóźnień.
+                  Zbudowaliśmy najprostszy możliwy przepływ informacji – od palca obywatela na ekranie smartfona po
+                  oficjalne stanowisko państwa widoczne w całym kraju. Bez biurokracji, bez opóźnień.
                 </p>
               </div>
-              <div className="flex gap-4 text-sm text-slate-600">
+              <div className="flex gap-4 text-sm text-slate-600 flex-col md:flex-row">
                 <div className="flex items-center gap-2 rounded-full border border-[#003a8c]/15 bg-[#f6f8ff] px-4 py-2">
-                  <IconTimeline className="size-4 text-[#003a8c]" />
+                  <IconTimeline className="size-4 text-[#003a8c] shrink-0" />
                   Jeden spójny obieg informacji
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-[#003a8c]/15 bg-[#f6f8ff] px-4 py-2">
-                  <IconShieldCheck className="size-4 text-[#003a8c]" />
+                  <IconShieldCheck className="size-4 text-[#003a8c] shrink-0" />
                   Pełna kontrola audytowa
                 </div>
               </div>
@@ -351,9 +364,12 @@ export default function LandingPage() {
 
         <section className="px-6 sm:px-10">
           <div className="mx-auto flex max-w-5xl flex-col gap-8 rounded-3xl border border-[#003a8c]/15 bg-gradient-to-br from-white via-[#eef3ff] to-[#d6e4ff] p-10 text-center shadow-[0_20px_55px_rgba(15,23,42,0.09)]">
-            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">Gotowy bronić prawdy na pierwszej linii?</h2>
+            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+              Gotowy bronić prawdy na pierwszej linii?
+            </h2>
             <p className="text-lg text-slate-600">
-              Zaloguj się do panelu służbowego i dołącz do zespołu, który każdego dnia powstrzymuje dezinformację przed dotarciem do milionów Polaków. Twoja decyzja może zmienić bieg debaty publicznej.
+              Zaloguj się do panelu służbowego i dołącz do zespołu, który każdego dnia powstrzymuje dezinformację przed
+              dotarciem do milionów Polaków. Twoja decyzja może zmienić bieg debaty publicznej.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Button
@@ -381,6 +397,8 @@ export default function LandingPage() {
 
       <footer className="relative z-10 px-6 pb-10 pt-6 text-center text-xs text-slate-500 sm:px-10">
         Tarcza Fact-Check • Hack Yeah 2025 • Rozszerzenie + panel dla ochrony społeczeństwa przed dezinformacją
+        <br />
+        Wszelkie dane znajdujące się na stronie nie są prawdziwe, a służą wyłącznie celom demonstracyjnym.
       </footer>
     </div>
   );
