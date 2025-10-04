@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDBService } from '@/services/DBService';
+import { SIMILARITY_THRESHOLD } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,9 +15,14 @@ export async function POST(request: NextRequest) {
     }
 
     const dbService = getDBService();
-    const flagged = await dbService.evaluateText(text);
+    const similarity = await dbService.compareText(text);
+    
+    const flagged = similarity > SIMILARITY_THRESHOLD;
 
-    return NextResponse.json({ flagged });
+    return NextResponse.json({ 
+      flagged,
+      similarity
+    });
   } catch (error) {
     console.error('Error in /api/evaluate:', error);
     return NextResponse.json(

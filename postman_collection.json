@@ -1,35 +1,35 @@
 {
 	"info": {
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-		"name": "Next Prompcik - Evaluate API",
-		"description": "API endpoints for keyword evaluation system",
+		"name": "Next Prompcik - Text Similarity API",
+		"description": "API endpoints for text similarity evaluation system using cosine similarity",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Keywords",
+			"name": "Text Posts",
 			"item": [
 				{
-					"name": "Get All Keywords",
+					"name": "Get All Posts",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/keywords",
+							"raw": "{{baseUrl}}/api/text",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"keywords"
+								"text"
 							]
 						},
-						"description": "Retrieve all keywords from the database"
+						"description": "Retrieve all text posts from the database"
 					},
 					"response": []
 				},
 				{
-					"name": "Add Keyword",
+					"name": "Add Post",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -40,45 +40,45 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"keyword\": \"spam\"\n}"
+							"raw": "{\n  \"text\": \"This is a sample post text that will be stored in the database\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/keywords",
+							"raw": "{{baseUrl}}/api/text",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"keywords"
+								"text"
 							]
 						},
-						"description": "Add a new keyword to the database"
+						"description": "Add a new text post to the database"
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Keyword",
+					"name": "Delete Post",
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/keywords?id={{keywordId}}",
+							"raw": "{{baseUrl}}/api/text?id={{postId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"keywords"
+								"text"
 							],
 							"query": [
 								{
 									"key": "id",
-									"value": "{{keywordId}}",
-									"description": "MongoDB ObjectId of the keyword to delete"
+									"value": "{{postId}}",
+									"description": "MongoDB ObjectId of the post to delete"
 								}
 							]
 						},
-						"description": "Delete a keyword by its ID"
+						"description": "Delete a post by its ID"
 					},
 					"response": []
 				}
@@ -88,7 +88,7 @@
 			"name": "Evaluation",
 			"item": [
 				{
-					"name": "Evaluate Text - Clean",
+					"name": "Evaluate Text - Low Similarity",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -99,7 +99,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"This is a normal message without any issues\"\n}"
+							"raw": "{\n  \"text\": \"This is a completely unique message with original content\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/evaluate",
@@ -111,12 +111,12 @@
 								"evaluate"
 							]
 						},
-						"description": "Evaluate clean text (should return flagged: false)"
+						"description": "Evaluate text with low similarity (should return flagged: false, similarity close to 0)"
 					},
 					"response": []
 				},
 				{
-					"name": "Evaluate Text - Flagged",
+					"name": "Evaluate Text - High Similarity",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -127,7 +127,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"This is a spam message\"\n}"
+							"raw": "{\n  \"text\": \"This is a sample post text that will be stored in the database\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/evaluate",
@@ -139,7 +139,7 @@
 								"evaluate"
 							]
 						},
-						"description": "Evaluate text with flagged keyword (should return flagged: true)"
+						"description": "Evaluate text similar to existing posts (should return flagged: true if similarity > 0.5)"
 					},
 					"response": []
 				},
@@ -177,7 +177,7 @@
 			"name": "Test Workflow",
 			"item": [
 				{
-					"name": "1. Add test keyword",
+					"name": "1. Add test post",
 					"event": [
 						{
 							"listen": "test",
@@ -187,7 +187,7 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Keyword added successfully\", function () {",
+									"pm.test(\"Post added successfully\", function () {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('message');",
 									"});"
@@ -206,23 +206,23 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"keyword\": \"testword\"\n}"
+							"raw": "{\n  \"text\": \"This is a test post for similarity testing\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/keywords",
+							"raw": "{{baseUrl}}/api/text",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"keywords"
+								"text"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "2. Evaluate with test keyword",
+					"name": "2. Evaluate similar text",
 					"event": [
 						{
 							"listen": "test",
@@ -232,9 +232,11 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Text is flagged\", function () {",
+									"pm.test(\"Response contains similarity score\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.flagged).to.eql(true);",
+									"    pm.expect(jsonData).to.have.property('similarity');",
+									"    pm.expect(jsonData).to.have.property('flagged');",
+									"    pm.expect(jsonData.similarity).to.be.within(0, 1);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -251,7 +253,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"This message contains testword\"\n}"
+							"raw": "{\n  \"text\": \"This is a test post for similarity testing\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/evaluate",
@@ -267,7 +269,7 @@
 					"response": []
 				},
 				{
-					"name": "3. Get all keywords",
+					"name": "3. Get all posts",
 					"event": [
 						{
 							"listen": "test",
@@ -277,16 +279,16 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Keywords array exists\", function () {",
+									"pm.test(\"Posts array exists\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('keywords');",
-									"    pm.expect(jsonData.keywords).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.property('posts');",
+									"    pm.expect(jsonData.posts).to.be.an('array');",
 									"});",
 									"",
-									"// Save first keyword ID for deletion",
+									"// Save first post ID for deletion",
 									"var jsonData = pm.response.json();",
-									"if (jsonData.keywords.length > 0) {",
-									"    pm.environment.set('keywordId', jsonData.keywords[0].id);",
+									"if (jsonData.posts.length > 0) {",
+									"    pm.environment.set('postId', jsonData.posts[0].id);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -297,13 +299,59 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/keywords",
+							"raw": "{{baseUrl}}/api/text",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
-								"keywords"
+								"text"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Evaluate different text",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Low similarity for different text\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.similarity).to.be.below(0.5);",
+									"    pm.expect(jsonData.flagged).to.eql(false);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Completely different content about weather and nature\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"evaluate"
 							]
 						}
 					},
@@ -339,7 +387,7 @@
 			"type": "string"
 		},
 		{
-			"key": "keywordId",
+			"key": "postId",
 			"value": "",
 			"type": "string"
 		}

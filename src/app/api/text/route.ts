@@ -4,13 +4,13 @@ import { getDBService } from '@/services/DBService';
 export async function GET() {
   try {
     const dbService = getDBService();
-    const keywords = await dbService.getKeywordsForDisplay();
+    const posts = await dbService.getPostsForDisplay();
     
-    return NextResponse.json({ keywords });
+    return NextResponse.json({ posts });
   } catch (error) {
-    console.error('Error fetching keywords:', error);
+    console.error('Error fetching posts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch keywords' },
+      { error: 'Failed to fetch posts' },
       { status: 500 }
     );
   }
@@ -19,34 +19,27 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { keyword } = body;
+    const { text } = body;
 
-    if (!keyword || typeof keyword !== 'string') {
+    if (!text || typeof text !== 'string') {
       return NextResponse.json(
-        { error: 'Keyword is required and must be a string' },
+        { error: 'Text is required and must be a string' },
         { status: 400 }
       );
     }
 
     const dbService = getDBService();
-    await dbService.addKeyword(keyword);
+    await dbService.addPost(text);
 
     return NextResponse.json(
-      { message: 'Keyword added successfully' },
+      { message: 'Post added successfully' },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error creating keyword:', error);
-    
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: 'Keyword already exists' },
-        { status: 409 }
-      );
-    }
+    console.error('Error processing text:', error);
     
     return NextResponse.json(
-      { error: 'Failed to create keyword' },
+      { error: 'Failed to process text' },
       { status: 500 }
     );
   }
@@ -59,21 +52,21 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Keyword ID is required' },
+        { error: 'Post ID is required' },
         { status: 400 }
       );
     }
 
     const dbService = getDBService();
-    await dbService.deleteKeyword(id);
+    await dbService.deletePost(id);
 
     return NextResponse.json({
-      message: 'Keyword deleted successfully',
+      message: 'Post deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting keyword:', error);
+    console.error('Error deleting post:', error);
     return NextResponse.json(
-      { error: 'Failed to delete keyword' },
+      { error: 'Failed to delete post' },
       { status: 500 }
     );
   }
