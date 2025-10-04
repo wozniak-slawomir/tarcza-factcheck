@@ -14,7 +14,9 @@ interface SearchResult {
   score: number;
   title?: string;
   content?: string;
-  tag_id?: string;
+  is_fake?: boolean;
+  url?: string;
+  createdAt?: string;
 }
 
 interface Evaluation {
@@ -23,7 +25,7 @@ interface Evaluation {
   confidence: number;
   reasoning: string;
   relatedPostsCount?: number;
-  relatedPosts?: Array<{ id: string; text: string; score: number; title?: string; content?: string; tag_id?: string }>;
+  relatedPosts?: Array<{ id: string; text: string; score: number; title?: string; content?: string; is_fake?: boolean; url?: string; createdAt?: string }>;
   evaluation?: {
     verdict: string;
     reasoning: string;
@@ -247,9 +249,12 @@ export default function TestPostPage() {
                                 >
                                   {(result.score * 100).toFixed(1)}%
                                 </Badge>
-                                {result.tag_id && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {result.tag_id}
+                                {result.is_fake !== undefined && (
+                                  <Badge 
+                                    variant={result.is_fake ? "destructive" : "default"} 
+                                    className="text-xs"
+                                  >
+                                    {result.is_fake ? "FAKE" : "REAL"}
                                   </Badge>
                                 )}
                               </div>
@@ -262,6 +267,18 @@ export default function TestPostPage() {
                                     <p className="text-muted-foreground whitespace-pre-wrap">
                                       {result.content || result.text}
                                     </p>
+                                    {result.url && (
+                                      <div className="mt-2">
+                                        <a 
+                                          href={result.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs underline"
+                                        >
+                                          {result.url}
+                                        </a>
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
                                   <p className="text-muted-foreground truncate">
@@ -307,9 +324,12 @@ export default function TestPostPage() {
                           <p className="text-sm text-muted-foreground">
                             Result #{index + 1}
                           </p>
-                          {result.tag_id && (
-                            <Badge variant="outline" className="text-xs">
-                              {result.tag_id}
+                          {result.is_fake !== undefined && (
+                            <Badge 
+                              variant={result.is_fake ? "destructive" : "default"} 
+                              className="text-xs"
+                            >
+                              {result.is_fake ? "FAKE" : "REAL"}
                             </Badge>
                           )}
                         </div>
@@ -319,6 +339,18 @@ export default function TestPostPage() {
                         <p className="text-sm leading-relaxed text-muted-foreground">
                           {result.content || result.text}
                         </p>
+                        {result.url && (
+                          <div className="mt-2">
+                            <a 
+                              href={result.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs underline"
+                            >
+                              {result.url}
+                            </a>
+                          </div>
+                        )}
                         <p className="text-xs text-muted-foreground mt-2 italic">
                           Searchable text: {result.text}
                         </p>

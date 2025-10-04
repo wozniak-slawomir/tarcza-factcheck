@@ -5,24 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { IconCirclePlus } from "@tabler/icons-react";
 import { Input } from "./ui/input";
+import { Checkbox } from "./ui/checkbox";
+import { Label } from "./ui/label";
 
 interface AddPostFormProps {
-  onAddPost: (text: string, url?: string) => Promise<void>;
+  onAddPost: (text: string, url?: string, is_fake?: boolean) => Promise<void>;
   addingPost: boolean;
 }
 
 export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
   const [newText, setNewText] = React.useState("");
   const [newUrl, setNewUrl] = React.useState("");
+  const [isFake, setIsFake] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newText.trim()) return;
 
     try {
-      await onAddPost(newText.trim(), newUrl.trim() || undefined);
+      await onAddPost(newText.trim(), newUrl.trim() || undefined, isFake);
       setNewText("");
       setNewUrl("");
+      setIsFake(false);
     } catch (error) {
       console.error("Error adding post:", error);
       alert("Nie udało się dodać posta");
@@ -86,6 +90,21 @@ export function AddPostForm({ onAddPost, addingPost }: AddPostFormProps) {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Fake News Checkbox */}
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="is-fake" 
+          checked={isFake}
+          onCheckedChange={(checked) => setIsFake(checked === true)}
+        />
+        <Label 
+          htmlFor="is-fake" 
+          className="text-sm font-medium cursor-pointer"
+        >
+          To jest fałszywa wiadomość
+        </Label>
       </div>
       <Button type="submit" disabled={addingPost || !newText.trim()}>
         <IconCirclePlus />

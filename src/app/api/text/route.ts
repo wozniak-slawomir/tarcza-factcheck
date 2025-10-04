@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, url } = body;
+    const { text, url, is_fake } = body;
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -42,14 +42,15 @@ export async function POST(request: NextRequest) {
 
     console.log('API: Adding new post to Qdrant...');
     const dbService = getDBService();
-    await dbService.addPost(text, url);
+    await dbService.addPost(text, url, is_fake);
     console.log('API: Post added successfully to Qdrant');
 
     return NextResponse.json(
       { 
         success: true,
         message: 'Post added successfully to Qdrant',
-        url: url || null
+        url: url || null,
+        is_fake: is_fake || false
       },
       { status: 201 }
     );

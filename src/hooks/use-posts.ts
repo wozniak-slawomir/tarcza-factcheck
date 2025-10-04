@@ -4,6 +4,9 @@ export interface PostItem {
   id: string;
   text: string;
   createdAt: string | null;
+  url?: string;
+  is_fake?: boolean;
+  title?: string;
   flagged?: boolean;
 }
 

@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tarcza Fact-Check | Panel dla Służb Publicznych",
   description: "Rozszerzenie przeglądarki wykrywające dezinformację + dashboard dla pracowników administracji weryfikujących zgłoszenia obywateli.",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

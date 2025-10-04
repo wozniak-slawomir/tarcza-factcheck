@@ -3,7 +3,7 @@ import { UrlSimilarityService } from './UrlSimilarityService';
 
 export interface DBService {
   getAllPosts(): Promise<string[]>;
-  addPost(text: string, url?: string): Promise<void>;
+  addPost(text: string, url?: string, is_fake?: boolean): Promise<void>;
   deletePost(id: string): Promise<void>;
   getPostsForDisplay(): Promise<PostItem[]>;
   compareText(text: string): Promise<number>;
@@ -25,8 +25,8 @@ class DBServiceImpl implements DBService {
     return this.vectorService.getAllPosts();
   }
 
-  async addPost(text: string, url?: string): Promise<void> {
-    return this.vectorService.addPost(text, url);
+  async addPost(text: string, url?: string, is_fake?: boolean): Promise<void> {
+    return this.vectorService.addPost(text, url, is_fake);
   }
 
   async deletePost(id: string): Promise<void> {
