@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "./ui/textarea";
 
 type PostItem = { id: string; text: string; createdAt: string | null };
 
@@ -142,25 +143,35 @@ export default function PostList() {
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>
-            <Input 
-              placeholder="Wprowadź tekst posta..."
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleAddPost();
-                }
-              }}
-            />
+            <form action="submit" className="flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
+              <div className="relative">
+                <Textarea
+                  placeholder="Wprowadź tekst posta..."
+                  value={newText}
+                  onChange={(e) => setNewText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddPost();
+                    }
+                  }}
+                  maxLength={1500}
+                  className="min-h-[80px] max-h-40 pr-10"
+                />
+                <div className="pointer-events-none absolute right-2 bottom-2 text-xs">
+                  <span className={newText.length >= 1500 ? "text-destructive" : "text-muted-foreground"}>
+                    {newText.length}
+                  </span>
+                  <span className="text-muted-foreground">/1500</span>
+                </div>
+              </div>
+              <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
+                <IconCirclePlus />
+                Dodaj
+              </Button>
+            </form>
           </CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Posty w bazie:</CardTitle>
-          <CardAction>
-            <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
-              <IconCirclePlus />
-              Dodaj
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
@@ -188,13 +199,11 @@ export default function PostList() {
                 paginatedPosts.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell className="font-medium max-w-xs truncate">{post.text}</TableCell>
-                    <TableCell className="text-right">{post.createdAt ? formatTimestamp(post.createdAt) : "-"}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeletePost(post.id)}
-                      >
+                      {post.createdAt ? formatTimestamp(post.createdAt) : "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handleDeletePost(post.id)}>
                         <IconTrash className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -247,9 +256,7 @@ export default function PostList() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Wszystkie posty w bazie danych
-          </div>
+          <div className="line-clamp-1 flex gap-2 font-medium">Wszystkie posty w bazie danych</div>
           <div className="text-muted-foreground">System porównywania tekstów</div>
         </CardFooter>
       </Card>
