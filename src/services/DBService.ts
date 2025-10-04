@@ -8,6 +8,7 @@ export interface DBService {
   getPostsForDisplay(): Promise<PostItem[]>;
   compareText(text: string): Promise<number>;
   vectorSearch(text: string, limit?: number): Promise<VectorSearchResult[]>;
+  vectorSearch(embedding: number[], limit?: number): Promise<VectorSearchResult[]>;
   checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }>;
 }
 
@@ -40,8 +41,14 @@ class DBServiceImpl implements DBService {
     return this.vectorService.compareText(text);
   }
 
-  async vectorSearch(text: string, limit: number = 10): Promise<VectorSearchResult[]> {
-    return this.vectorService.vectorSearch(text, limit);
+  async vectorSearch(text: string, limit?: number): Promise<VectorSearchResult[]>;
+  async vectorSearch(embedding: number[], limit?: number): Promise<VectorSearchResult[]>;
+  async vectorSearch(textOrEmbedding: string | number[], limit: number = 10): Promise<VectorSearchResult[]> {
+    if (typeof textOrEmbedding === 'string') {
+      return this.vectorService.vectorSearch(textOrEmbedding, limit);
+    } else {
+      return this.vectorService.vectorSearch(textOrEmbedding, limit);
+    }
   }
 
   async checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }> {

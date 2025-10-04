@@ -135,10 +135,14 @@ export class VectorService {
     return searchResult.length > 0 ? searchResult[0].score || 0 : 0;
   }
 
-  async vectorSearch(text: string, limit: number = 10): Promise<VectorSearchResult[]> {
+  async vectorSearch(text: string, limit?: number): Promise<VectorSearchResult[]>;
+  async vectorSearch(embedding: number[], limit?: number): Promise<VectorSearchResult[]>;
+  async vectorSearch(textOrEmbedding: string | number[], limit: number = 10): Promise<VectorSearchResult[]> {
     await this.ensureCollection();
 
-    const queryEmbedding = await this.openAIService.generateEmbedding(text);
+    const queryEmbedding = typeof textOrEmbedding === 'string' 
+      ? await this.openAIService.generateEmbedding(textOrEmbedding)
+      : textOrEmbedding;
 
     const searchResult = await qdrantClient.search(COLLECTION_NAME, {
       vector: queryEmbedding,
