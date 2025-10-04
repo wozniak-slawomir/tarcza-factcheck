@@ -1,41 +1,44 @@
+import { SIMILARITY_THRESHOLD } from '@/lib/constants';
 import { DBService } from './DBService';
 import connectDB from '@/lib/db/mongodb';
-import Keyword from '@/models/Keyword';
+import Post from '@/models/Post';
 
 export class MongoDBService implements DBService {
-  async getAllKeywords(): Promise<string[]> {
+  async getAllPosts(): Promise<string[]> {
     await connectDB();
-    const keywords = await Keyword.find({}, { keyword: 1 }).lean();
-    return keywords.map(k => k.keyword);
+    const posts = await Post.find({}, { text: 1 }).lean();
+    return posts.map(p => p.text);
   }
 
-  async addKeyword(keyword: string): Promise<void> {
+  async addPost(text: string): Promise<void> {
     await connectDB();
-    await Keyword.create({ keyword: keyword.trim() });
+    await Post.create({ text: text.trim() });
   }
 
-  async deleteKeyword(id: string): Promise<void> {
+  async deletePost(id: string): Promise<void> {
     await connectDB();
-    const result = await Keyword.findByIdAndDelete(id);
+    const result = await Post.findByIdAndDelete(id);
     if (!result) {
-      throw new Error('Keyword not found');
+      throw new Error('Post not found');
     }
   }
 
-  async getKeywordsForDisplay(): Promise<Array<{ id: string; keyword: string }>> {
+  async getPostsForDisplay(): Promise<Array<{ id: string; text: string; createdAt?: string }>> {
     await connectDB();
-    const keywords = await Keyword.find({}).sort({ createdAt: -1 });
-    return keywords.map(k => ({
-      id: (k as any)._id.toString(),
-      keyword: k.keyword,
+    const posts = await Post.find({}).sort({ createdAt: -1 });
+    return posts.map(p => ({
+      id: (p as any)._id.toString(),
+      text: p.text,
+      createdAt: (p as any).createdAt?.toISOString(),
     }));
   }
 
-  async evaluateText(text: string): Promise<boolean> {
-    const keywords = await this.getAllKeywords();
-    const normalizedText = text.toLowerCase();
-    return keywords.some(keyword => 
-      normalizedText.includes(keyword.toLowerCase())
-    );
+  async compareText(text: string): Promise<number> {
+    const existingPosts = await this.getAllPosts();
+    if (existingPosts.length === 0) {
+      return 0;
+    }
+
+    return SIMILARITY_THRESHOLD; // Placeholder similarity value
   }
 }

@@ -1,11 +1,11 @@
 import { MongoDBService } from './MongoDBService';
 
 export interface DBService {
-  getAllKeywords(): Promise<string[]>;
-  addKeyword(keyword: string): Promise<void>;
-  deleteKeyword(id: string): Promise<void>;
-  getKeywordsForDisplay(): Promise<Array<{ id: string; keyword: string }>>;
-  evaluateText(text: string): Promise<boolean>;
+  getAllPosts(): Promise<string[]>;
+  addPost(text: string): Promise<void>;
+  deletePost(id: string): Promise<void>;
+  getPostsForDisplay(): Promise<Array<{ id: string; text: string; createdAt?: string }>>;
+  compareText(text: string): Promise<number>;
 }
 
 let dbServiceInstance: DBService | null = null;
