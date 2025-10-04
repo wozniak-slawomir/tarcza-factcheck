@@ -1,131 +1,37 @@
 "use client";
 
 import * as React from "react";
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconCirclePlus,
-  IconTrash,
-  IconTrendingUp,
-} from "@tabler/icons-react";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { topWordsFromPosts } from "@/lib/utils";
-import TrendingChart from "./trending-chart";
-import type { ChartConfig } from "@/components/ui/chart";
-import { Textarea } from "./ui/textarea";
-import { Input } from "@/components/ui/input";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
-
-type PostItem = { id: string; text: string; createdAt: string | null };
-
-function usePosts() {
-  const [posts, setPosts] = React.useState<PostItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const loadPosts = React.useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/text", { signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setPosts(Array.isArray(data.posts) ? data.posts : []);
-      setError(null);
-    } catch (err) {
-      if (typeof err === "object" && err !== null) {
-        const name = (err as { name?: unknown }).name;
-        if (name === "AbortError") return;
-      }
-      console.error("Failed to load posts", err);
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const ac = new AbortController();
-    loadPosts(ac.signal);
-    return () => ac.abort();
-  }, [loadPosts]);
-
-  return { posts, loading, error, reloadPosts: loadPosts } as const;
-}
+import { Table, TableHeader, TableHead, TableRow } from "@/components/ui/table";
+import { IconCirclePlus } from "@tabler/icons-react";
+import { usePosts } from "@/hooks/use-posts";
+import { usePagination } from "@/hooks/use-pagination";
+import { useTrends } from "@/hooks/use-trends";
+import { AddPostForm } from "./add-post-form";
+import { PostsTable } from "./posts-table";
+import { TrendsSection } from "./trends-section";
+import { PaginationControls } from "./pagination-controls";
 
 export default function PostList() {
-  const [page, setPage] = React.useState(0);
-  const [newText, setNewText] = React.useState("");
   const [addingPost, setAddingPost] = React.useState(false);
-  const [newUrl, setNewUrl] = React.useState("");
   const pageSize = 8;
   const { posts, loading, error, reloadPosts } = usePosts();
+  const { topWords, chartData, chartConfig } = useTrends(posts);
+  const { page, setPage, pageCount, paginatedItems } = usePagination(posts.length, pageSize);
 
-  const unflaggedPosts = React.useMemo(() => {
-    return posts.filter((p) => !Boolean((p as Record<string, unknown>).flagged));
-  }, [posts]);
+  const paginatedPosts = paginatedItems(posts);
 
-  const pageCount = Math.max(1, Math.ceil(unflaggedPosts.length / pageSize));
-
-  React.useEffect(() => {
-    if (page >= pageCount) setPage(Math.max(0, pageCount - 1));
-  }, [pageCount, page]);
-
-  const paginatedPosts = unflaggedPosts.slice(page * pageSize, (page + 1) * pageSize);
-
-  // compute top words once and reuse for badges + chart
-  const top = React.useMemo(() => {
-    const source = unflaggedPosts;
-    const texts: string[] = source.map((p: PostItem) => p.text || "");
-    return topWordsFromPosts(texts, 3, ["i", "oraz", "jak", "czy", "etc"]);
-  }, [unflaggedPosts]);
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-
-    if (diffSec < 10) return "teraz";
-    if (diffSec < 60) return `${diffSec} sekund temu`;
-    const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin} minut${diffMin === 1 ? "ę" : ""} temu`;
-    const diffHour = Math.floor(diffMin / 60);
-    if (diffHour < 24) return `${diffHour} godzin${diffHour === 1 ? "ę" : ""} temu`;
-    const diffDays = Math.floor(diffHour / 24);
-    if (diffDays <= 7) return `${diffDays} dni temu`;
-
-    return date.toLocaleDateString("pl-PL", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
-
-  const isValidUrl = (raw: string) => {
-    if (!raw) return true; // optional
-    return /^https?:\/\//i.test(raw.trim());
-  };
-
-  const handleAddPost = async () => {
-    if (!newText.trim()) return;
-    if (!isValidUrl(newUrl)) {
-      alert("URL musi zaczynać się od http:// lub https:// lub pozostać pusty");
-      return;
-    }
+  const handleAddPost = async (text: string) => {
     try {
       setAddingPost(true);
       const res = await fetch("/api/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: newText, url: newUrl.trim() || undefined }),
+        body: JSON.stringify({ text }),
       });
       if (!res.ok) throw new Error("Failed to add post");
-      setNewText("");
-      setNewUrl("");
+
       await reloadPosts();
     } catch (err) {
       console.error("Error adding post:", err);
@@ -136,8 +42,6 @@ export default function PostList() {
   };
 
   const handleDeletePost = async (id: string) => {
-    if (!confirm("Czy na pewno chcesz usunąć ten post?")) return;
-
     try {
       const res = await fetch(`/api/text?id=${id}`, {
         method: "DELETE",
@@ -152,146 +56,22 @@ export default function PostList() {
     }
   };
 
-  const chartData = React.useMemo(() => {
-    if (!top || top.length === 0) return undefined;
-
-    const sanitize = (s: string) => s.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
-
-    const items: Array<{ browser: string; visitors: number; fill: string }> = [];
-
-    let othersCount = 0;
-
-    top.forEach((t, i) => {
-      if (i < 3) {
-        const key = sanitize(t.word);
-        items.push({ browser: key, visitors: t.count, fill: `var(--color-${key})` });
-      } else {
-        othersCount += t.count;
-      }
-    });
-
-    if (othersCount > 0) {
-      items.push({ browser: "inne", visitors: othersCount, fill: "var(--color-muted)" });
-    }
-
-    return items;
-  }, [top]);
-
-  // Helper: convert plain text with URLs to clickable links for display
-  const linkify = React.useCallback((text: string) => {
-    if (!text) return null;
-    const urlRegex = /(https?:\/\/[^\s]+)/g; // basic URL matcher
-    const parts = text.split(urlRegex);
-    return parts.map((part, i) => {
-      if (/^https?:\/\//.test(part)) {
-        return (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline break-all hover:text-primary/80"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
-        );
-      }
-      return <React.Fragment key={i}>{part}</React.Fragment>;
-    });
-  }, []);
-
-  // (removed link insertion logic; URL now provided via separate input)
-
-  const chartConfig = React.useMemo(() => {
-    const base: ChartConfig = {
-      visitors: { label: "Wystąpienia" },
-    };
-
-    if (!top || top.length === 0) return base;
-
-    const sanitize = (s: string) => s.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
-    // shades not used here; colors are provided via CSS vars per-key (var(--color-<key>)).
-
-    top.forEach((t, i) => {
-      const key = sanitize(t.word);
-      const color = i === 0 ? "var(--color-primary)" : i === 1 ? "#fc6970" : "#fd9ba0";
-      base[key] = { label: t.word, color } as ChartConfig[string];
-    });
-
-    if (top.length > 3) {
-      base["inne"] = { label: "Inne", color: "var(--color-muted-foreground)" } as ChartConfig[string];
-    }
-
-    return base;
-  }, [top]);
-
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>
-            <form action="submit" className="flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Dodaj post</span>
-              </div>
-              <div className="relative">
-                <Textarea
-                  placeholder="Wprowadź tekst posta..."
-                  value={newText}
-                  onChange={(e) => setNewText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleAddPost();
-                    }
-                  }}
-                  maxLength={1500}
-                  className="min-h-[80px] max-h-40 pr-10"
-                />
-                <div className="pointer-events-none absolute right-2 bottom-2 text-xs">
-                  <span className={newText.length >= 1500 ? "text-destructive" : "text-muted-foreground"}>
-                    {newText.length}
-                  </span>
-                  <span className="text-muted-foreground">/1500</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <Input
-                  placeholder="Opcjonalny URL (http:// lub https://)"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  className={!isValidUrl(newUrl) ? "border-destructive focus-visible:border-destructive" : ""}
-                  maxLength={500}
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    {newUrl
-                      ? isValidUrl(newUrl)
-                        ? "URL zostanie zapisany osobno"
-                        : "Niepoprawny format URL"
-                      : "Pole opcjonalne"}
-                  </span>
-                  {newUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setNewUrl("")}
-                      className="text-[10px] underline text-primary hover:text-primary/80"
-                    >
-                      Wyczyść
-                    </button>
-                  )}
-                </div>
-              </div>
-              <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
-                <IconCirclePlus />
-                Dodaj
-              </Button>
-            </form>
+            <AddPostForm onAddPost={handleAddPost} addingPost={addingPost} />
           </CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums mt-5">
-            Wszystkie posty: {unflaggedPosts.length}
+            Wszystkie posty: {posts.length}
           </CardTitle>
+          <CardAction>
+            <Button onClick={() => {}} disabled={addingPost}>
+              <IconCirclePlus />
+              Dodaj
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
@@ -302,105 +82,26 @@ export default function PostList() {
                 <TableHead className="text-right w-[50px]">Akcje</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
-                    Ładowanie...
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center text-destructive">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              ) : paginatedPosts.length ? (
-                paginatedPosts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium max-w-xs truncate">
-                      <HoverCard>
-                        <HoverCardTrigger className="text-left cursor-default">
-                          <span className="block truncate max-w-xs">{linkify(post.text)}</span>
-                        </HoverCardTrigger>
-                        <HoverCardContent
-                          side="top"
-                          align="start"
-                          className="w-fit max-w-sm text-sm leading-snug break-words"
-                        >
-                          {linkify(post.text)}
-                        </HoverCardContent>
-                      </HoverCard>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {post.createdAt ? formatTimestamp(post.createdAt) : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleDeletePost(post.id)}>
-                        <IconTrash className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
-                    Brak postów w bazie.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+            <PostsTable
+              posts={paginatedPosts}
+              loading={loading}
+              error={error}
+              onDeletePost={handleDeletePost}
+            />
           </Table>
-          <div className="flex items-center justify-between mt-4">
-            <span className="text-sm text-muted-foreground">
-              Strona {page + 1} z {pageCount}
-            </span>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(0)} disabled={page === 0}>
-                <IconChevronsLeft />
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 0}>
-                <IconChevronLeft />
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= pageCount - 1}>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(pageCount - 1)}
-                disabled={page >= pageCount - 1}
-              >
-                <IconChevronsRight />
-              </Button>
-            </div>
-          </div>
+          <PaginationControls
+            page={page}
+            pageCount={pageCount}
+            onPageChange={setPage}
+          />
         </CardContent>
       </Card>
       <Card className="@container/card">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">Trendy</CardTitle>
-          <CardDescription>Najczęsciej występujące słowa (z oznaczonych postów)</CardDescription>
-          <CardAction>
-            <IconTrendingUp />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="">
-          {(() => {
-            return top.length ? (
-              <div className="flex gap-2">
-                {top.map((t: { word: string; count: number }) => (
-                  <Badge key={t.word}>
-                    {t.word} ({t.count})
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">Brak nieoznaczonych postów lub brak znaczących słów.</div>
-            );
-          })()}
-          <TrendingChart chartData={chartData} chartConfig={chartConfig} />
-        </CardContent>
+        <TrendsSection
+          topWords={topWords}
+          chartData={chartData}
+          chartConfig={chartConfig}
+        />
       </Card>
     </div>
   );

@@ -1,18 +1,19 @@
 import OpenAI from 'openai';
 import { OPENAI_EMBEDDING_MODEL, OPENAI_CHAT_MODEL } from '@/lib/constants';
+import { OpenAIServiceInterface } from './OpenAIServiceInterface';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export class OpenAIService {
-  static async generateEmbedding(text: string): Promise<number[]> {
+export class OpenAIService implements OpenAIServiceInterface {
+  async generateEmbedding(text: string): Promise<number[]> {
     try {
       const response = await openai.embeddings.create({
         model: OPENAI_EMBEDDING_MODEL,
         input: text,
       });
-      
+
       return response.data[0].embedding;
     } catch (error) {
       console.error('Error generating embedding:', error);
@@ -20,13 +21,13 @@ export class OpenAIService {
     }
   }
 
-  static async generateEmbeddings(texts: string[]): Promise<number[][]> {
+  async generateEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       const response = await openai.embeddings.create({
         model: OPENAI_EMBEDDING_MODEL,
         input: texts,
       });
-      
+
       return response.data.map(item => item.embedding);
     } catch (error) {
       console.error('Error generating embeddings:', error);
@@ -34,12 +35,10 @@ export class OpenAIService {
     }
   }
 
-  static async prompt(
-    prompt: string,
-  ): Promise<string> {
+  async prompt(prompt: string): Promise<string> {
     try {
       const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
-      
+
       messages.push({
         role: 'user',
         content: prompt,
