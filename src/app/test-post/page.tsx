@@ -19,8 +19,16 @@ interface SearchResult {
 
 interface Evaluation {
   flagged: boolean;
+  similarity: number;
   confidence: number;
   reasoning: string;
+  relatedPostsCount?: number;
+  relatedPosts?: Array<{ id: string; text: string; score: number; title?: string; content?: string; tag_id?: string }>;
+  evaluation?: {
+    verdict: string;
+    reasoning: string;
+    recommendation: string;
+  };
 }
 
 interface RelatedPost {
@@ -36,6 +44,17 @@ export default function TestPostPage() {
   const [evaluationResult, setEvaluationResult] = useState<Evaluation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
+
+  const toggleExpandedPost = (postId: string) => {
+    const newExpanded = new Set(expandedPosts);
+    if (newExpanded.has(postId)) {
+      newExpanded.delete(postId);
+    } else {
+      newExpanded.add(postId);
+    }
+    setExpandedPosts(newExpanded);
+  };
 
   const handleVectorSearch = async () => {
     if (!testText.trim()) {
@@ -180,18 +199,91 @@ export default function TestPostPage() {
                 <div className="flex items-center gap-4">
                   <span className="font-medium">Similarity Score:</span>
                   <Badge 
+                    className={`${getScoreColor(evaluationResult.similarity)} text-white`}
+                  >
+                    {(evaluationResult.similarity * 100).toFixed(2)}%
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <span className="font-medium">Confidence:</span>
+                  <Badge 
                     className={`${getScoreColor(evaluationResult.confidence)} text-white`}
                   >
                     {(evaluationResult.confidence * 100).toFixed(2)}%
                   </Badge>
                 </div>
                 
+                {evaluationResult.relatedPostsCount !== undefined && (
+                  <div className="flex items-center gap-4">
+                    <span className="font-medium">Related Posts:</span>
+                    <Badge variant="outline">
+                      {evaluationResult.relatedPostsCount} found
+                    </Badge>
+                  </div>
+                )}
+                
                 <div>
                   <h4 className="font-medium mb-2">AI Reasoning:</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {evaluationResult.reasoning}
+                    {evaluationResult.evaluation?.reasoning || evaluationResult.reasoning}
                   </p>
                 </div>
+
+                {evaluationResult.relatedPostsCount && evaluationResult.relatedPostsCount > 0 && evaluationResult.relatedPosts && (
+                  <div>
+                    <h4 className="font-medium mb-2">Matching Posts Used for Analysis:</h4>
+                    <div className="space-y-2">
+                      {evaluationResult.relatedPosts.map((result, index) => (
+                        <div key={result.id} className="border rounded-lg p-3 bg-muted/30">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-xs">
+                                  #{index + 1}
+                                </Badge>
+                                <Badge 
+                                  className={`${getScoreColor(result.score)} text-white text-xs`}
+                                >
+                                  {(result.score * 100).toFixed(1)}%
+                                </Badge>
+                                {result.tag_id && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {result.tag_id}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-sm">
+                                {expandedPosts.has(result.id) ? (
+                                  <div>
+                                    <p className="font-medium text-foreground mb-1">
+                                      {result.title || 'Untitled'}
+                                    </p>
+                                    <p className="text-muted-foreground whitespace-pre-wrap">
+                                      {result.content || result.text}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-muted-foreground truncate">
+                                    {result.title || result.content || result.text}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleExpandedPost(result.id)}
+                              className="shrink-0 h-6 px-2 text-xs"
+                            >
+                              {expandedPosts.has(result.id) ? 'Show Less' : 'Show More'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

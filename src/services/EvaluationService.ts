@@ -8,8 +8,11 @@ export interface EvaluationRequest {
 
 export interface EvaluationResult {
   flagged: boolean;
+  similarity: number;
   confidence: number;
   reasoning: string;
+  relatedPostsCount?: number;
+  relatedPosts?: VectorSearchResult[];
 }
 
 export interface VectorSearchResult {
@@ -52,8 +55,25 @@ export class EvaluationService {
   private createBelowThresholdResult(similarity: number): EvaluationResult {
     return {
       flagged: false,
+      similarity: parseFloat(similarity.toFixed(4)),
       confidence: parseFloat(similarity.toFixed(4)),
       reasoning: 'Content similarity is below threshold, no significant matches found in database',
+      relatedPostsCount: 0,
+      relatedPosts: [],
+    };
+  }
+
+  /**
+   * Creates a high-confidence flagged result for exact duplicates (100% similarity)
+   */
+  private createExactDuplicateResult(similarity: number, relatedPosts: VectorSearchResult[]): EvaluationResult {
+    return {
+      flagged: true,
+      similarity: parseFloat(similarity.toFixed(4)),
+      confidence: 1.0, // Maximum confidence for exact duplicates
+      reasoning: 'Content is 100% identical to existing post in database - likely duplicate or spam',
+      relatedPostsCount: relatedPosts.length,
+      relatedPosts: relatedPosts,
     };
   }
 
@@ -112,7 +132,7 @@ Provide a JSON response with the following structure:
   /**
    * Parses the AI response and extracts the evaluation result
    */
-  private parseAIResponse(aiResponse: string): EvaluationResult {
+  private parseAIResponse(aiResponse: string, similarity: number, relatedPosts: VectorSearchResult[]): EvaluationResult {
     try {
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
 
@@ -126,27 +146,33 @@ Provide a JSON response with the following structure:
         ) {
           return {
             flagged: parsed.flagged,
+            similarity: parseFloat(similarity.toFixed(4)),
             confidence: Math.max(0, Math.min(1, parsed.confidence)),
             reasoning: parsed.reasoning,
+            relatedPostsCount: relatedPosts.length,
+            relatedPosts: relatedPosts,
           };
         }
       }
 
-      return this.createFallbackEvaluationResult(aiResponse);
+      return this.createFallbackEvaluationResult(aiResponse, similarity);
     } catch (error) {
       console.error('Error parsing AI response:', error);
-      return this.createFallbackEvaluationResult(aiResponse);
+      return this.createFallbackEvaluationResult(aiResponse, similarity);
     }
   }
 
   /**
    * Creates a fallback evaluation result when AI response parsing fails
    */
-  private createFallbackEvaluationResult(aiResponse: string): EvaluationResult {
+  private createFallbackEvaluationResult(aiResponse: string, similarity: number = 0.5): EvaluationResult {
     return {
       flagged: false,
+      similarity: parseFloat(similarity.toFixed(4)),
       confidence: 0.5,
       reasoning: aiResponse || 'Unable to parse AI response',
+      relatedPostsCount: 0,
+      relatedPosts: [],
     };
   }
 
@@ -157,6 +183,7 @@ Provide a JSON response with the following structure:
     console.log('Evaluating text similarity using Qdrant...');
     const similarity = await this.dbService.compareText(text);
 
+    // If similarity is below threshold, skip expensive AI analysis
     if (similarity <= SIMILARITY_THRESHOLD) {
       console.log(
         `Similarity ${similarity.toFixed(4)} below threshold ${SIMILARITY_THRESHOLD}, skipping AI analysis`
@@ -164,16 +191,27 @@ Provide a JSON response with the following structure:
       return this.createBelowThresholdResult(similarity);
     }
 
+    // Get related posts for context
+    const relatedPosts = await this.dbService.vectorSearch(text, 5);
+
+    // If similarity is 100% (exact duplicate), skip AI analysis and flag immediately
+    if (similarity >= 0.9999) { // Use 0.9999 instead of 1.0 due to floating point precision
+      console.log(
+        `Similarity ${similarity.toFixed(4)} is 100% - exact duplicate detected, skipping AI analysis`
+      );
+      return this.createExactDuplicateResult(similarity, relatedPosts);
+    }
+
+    // Only perform expensive AI analysis for moderate similarity scores
     console.log(
       `Similarity ${similarity.toFixed(4)} above threshold ${SIMILARITY_THRESHOLD}, performing AI analysis`
     );
 
-    const relatedPosts = await this.dbService.vectorSearch(text, 5);
     const relatedPostsContext = this.formatRelatedPostsContext(relatedPosts);
     const prompt = this.generateEvaluationPrompt(text, similarity, relatedPostsContext);
 
     const aiResponse = await this.openAIService.prompt(prompt);
 
-    return this.parseAIResponse(aiResponse);
+    return this.parseAIResponse(aiResponse, similarity, relatedPosts);
   }
 }

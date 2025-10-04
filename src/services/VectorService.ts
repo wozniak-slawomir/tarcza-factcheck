@@ -72,9 +72,21 @@ export class VectorService {
   }
 
   async deletePost(id: string): Promise<void> {
-    await qdrantClient.delete(COLLECTION_NAME, {
-      points: [id]
-    });
+    try {
+      const numericId = parseInt(id, 10);
+      if (isNaN(numericId)) {
+        throw new Error(`Invalid post ID: ${id}`);
+      }
+      
+      await qdrantClient.delete(COLLECTION_NAME, {
+        points: [numericId]
+      });
+      
+      console.log(`Successfully deleted post with ID: ${numericId}`);
+    } catch (error) {
+      console.error(`Error deleting post with ID ${id}:`, error);
+      throw error;
+    }
   }
 
   async getAllPosts(): Promise<string[]> {
