@@ -60,10 +60,9 @@ Please analyze:
 
 Provide a JSON response with the following structure:
 {
-  "verdict": "true" | "false" | "uncertain",
+  "flagged": true | false,
   "confidence": 0.0-1.0,
   "reasoning": "brief explanation",
-  "recommendation": "approve" | "review" | "reject"
 }`;
 
     const aiResponse = await OpenAIService.prompt(prompt);
@@ -75,29 +74,22 @@ Provide a JSON response with the following structure:
         evaluation = JSON.parse(jsonMatch[0]);
       } else {
         evaluation = {
-          verdict: 'uncertain',
+          flagged: false,
           confidence: 0.5,
           reasoning: aiResponse,
-          recommendation: 'review'
         };
       }
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
       evaluation = {
-        verdict: 'uncertain',
+        flagged: false,
         confidence: 0.5,
         reasoning: aiResponse,
-        recommendation: 'review'
       };
     }
 
-    const flagged = evaluation.recommendation === 'reject';
-
-    return NextResponse.json({ 
-      flagged,
-      similarity: parseFloat(similarity.toFixed(4)),
-      relatedPostsCount: relatedPosts.length,
-      evaluation,
+    return NextResponse.json({
+      ...evaluation
     });
   } catch (error) {
     console.error('Error in /api/evaluate:', error);

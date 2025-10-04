@@ -18,10 +18,9 @@ interface SearchResult {
 }
 
 interface Evaluation {
-  verdict: 'true' | 'false' | 'uncertain';
+  flagged: boolean;
   confidence: number;
   reasoning: string;
-  recommendation: 'approve' | 'review' | 'reject';
 }
 
 interface RelatedPost {
@@ -31,18 +30,10 @@ interface RelatedPost {
   score: number;
 }
 
-interface EvaluationResult {
-  flagged: boolean;
-  similarity: number;
-  relatedPostsCount: number;
-  evaluation: Evaluation;
-  relatedPosts: RelatedPost[];
-}
-
 export default function TestPostPage() {
   const [testText, setTestText] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+  const [evaluationResult, setEvaluationResult] = useState<Evaluation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,16 +180,16 @@ export default function TestPostPage() {
                 <div className="flex items-center gap-4">
                   <span className="font-medium">Similarity Score:</span>
                   <Badge 
-                    className={`${getScoreColor(evaluationResult.similarity)} text-white`}
+                    className={`${getScoreColor(evaluationResult.confidence)} text-white`}
                   >
-                    {(evaluationResult.similarity * 100).toFixed(2)}%
+                    {(evaluationResult.confidence * 100).toFixed(2)}%
                   </Badge>
                 </div>
                 
                 <div>
                   <h4 className="font-medium mb-2">AI Reasoning:</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {evaluationResult.evaluation.reasoning}
+                    {evaluationResult.reasoning}
                   </p>
                 </div>
               </div>
@@ -206,7 +197,6 @@ export default function TestPostPage() {
           </Card>
         )}
 
-        {/* Vector Search Results */}
         {searchResults.length > 0 && (
           <Card>
             <CardHeader>
