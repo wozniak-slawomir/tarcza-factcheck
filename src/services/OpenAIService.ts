@@ -47,8 +47,6 @@ export class OpenAIService {
       const response = await openai.chat.completions.create({
         model: 'gpt-5-nano',
         messages,
-        temperature: 0.7,
-        max_tokens: 1024,
       });
 
       return response.choices[0]?.message?.content || '';
