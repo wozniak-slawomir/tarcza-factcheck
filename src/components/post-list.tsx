@@ -3,26 +3,21 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import {
-  IconTrendingDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
   IconCirclePlus,
   IconTrash,
+  IconTrendingUp,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { topWordsFromPosts } from "@/lib/utils";
+import TrendingChart from "./trending-chart";
+import type { ChartConfig } from "@/components/ui/chart";
 import { Textarea } from "./ui/textarea";
 
 type PostItem = { id: string; text: string; createdAt: string | null };
@@ -68,14 +63,24 @@ export default function PostList() {
   const pageSize = 8;
   const { posts, loading, error, reloadPosts } = usePosts();
 
-  const pageCount = Math.max(1, Math.ceil(posts.length / pageSize));
+  const unflaggedPosts = React.useMemo(() => {
+    return posts.filter((p) => !Boolean((p as Record<string, unknown>).flagged));
+  }, [posts]);
+
+  const pageCount = Math.max(1, Math.ceil(unflaggedPosts.length / pageSize));
 
   React.useEffect(() => {
     if (page >= pageCount) setPage(Math.max(0, pageCount - 1));
   }, [pageCount, page]);
 
-  const paginatedPosts = posts.slice(page * pageSize, (page + 1) * pageSize);
+  const paginatedPosts = unflaggedPosts.slice(page * pageSize, (page + 1) * pageSize);
 
+  // compute top words once and reuse for badges + chart
+  const top = React.useMemo(() => {
+    const source = unflaggedPosts;
+    const texts: string[] = source.map((p: PostItem) => p.text || "");
+    return topWordsFromPosts(texts, 3, ["i", "oraz", "jak", "czy", "etc"]);
+  }, [unflaggedPosts]);
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -138,6 +143,54 @@ export default function PostList() {
     }
   };
 
+  const chartData = React.useMemo(() => {
+    if (!top || top.length === 0) return undefined;
+
+    const sanitize = (s: string) => s.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
+
+    const items: Array<{ browser: string; visitors: number; fill: string }> = [];
+
+    let othersCount = 0;
+
+    top.forEach((t, i) => {
+      if (i < 3) {
+        const key = sanitize(t.word);
+        items.push({ browser: key, visitors: t.count, fill: `var(--color-${key})` });
+      } else {
+        othersCount += t.count;
+      }
+    });
+
+    if (othersCount > 0) {
+      items.push({ browser: "inne", visitors: othersCount, fill: "var(--color-muted)" });
+    }
+
+    return items;
+  }, [top]);
+
+  const chartConfig = React.useMemo(() => {
+    const base: ChartConfig = {
+      visitors: { label: "Wystąpienia" },
+    };
+
+    if (!top || top.length === 0) return base;
+
+    const sanitize = (s: string) => s.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
+    // shades not used here; colors are provided via CSS vars per-key (var(--color-<key>)).
+
+    top.forEach((t, i) => {
+      const key = sanitize(t.word);
+      const color = i === 0 ? "var(--color-primary)" : i === 1 ? "#fc6970" : "#fd9ba0";
+      base[key] = { label: t.word, color } as ChartConfig[string];
+    });
+
+    if (top.length > 3) {
+      base["inne"] = { label: "Inne", color: "var(--color-muted-foreground)" } as ChartConfig[string];
+    }
+
+    return base;
+  }, [top]);
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
       <Card className="@container/card">
@@ -171,7 +224,15 @@ export default function PostList() {
               </Button>
             </form>
           </CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">Posty w bazie:</CardTitle>
+          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">
+            Wszystkie posty: {unflaggedPosts.length}
+          </CardTitle>
+          <CardAction>
+            <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
+              <IconCirclePlus />
+              Dodaj
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
           <Table>
@@ -246,19 +307,28 @@ export default function PostList() {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Nowe posty</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{posts.length}</CardTitle>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">Trendy</CardTitle>
+          <CardDescription>Najczęsciej występujące słowa (z oznaczonych postów)</CardDescription>
           <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              Łącznie
-            </Badge>
+            <IconTrendingUp />
           </CardAction>
         </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">Wszystkie posty w bazie danych</div>
-          <div className="text-muted-foreground">System porównywania tekstów</div>
-        </CardFooter>
+        <CardContent className="">
+          {(() => {
+            return top.length ? (
+              <div className="flex gap-2">
+                {top.map((t: { word: string; count: number }) => (
+                  <Badge key={t.word}>
+                    {t.word} ({t.count})
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">Brak nieoznaczonych postów lub brak znaczących słów.</div>
+            );
+          })()}
+          <TrendingChart chartData={chartData} chartConfig={chartConfig} />
+        </CardContent>
       </Card>
     </div>
   );
