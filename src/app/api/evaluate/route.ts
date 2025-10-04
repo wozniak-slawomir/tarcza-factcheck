@@ -79,12 +79,6 @@ Provide a JSON response with the following structure:
       similarity: parseFloat(similarity.toFixed(4)),
       relatedPostsCount: relatedPosts.length,
       evaluation,
-      relatedPosts: relatedPosts.map(post => ({
-        id: post.id,
-        title: post.title,
-        text: post.text.substring(0, 200) + (post.text.length > 200 ? '...' : ''),
-        score: parseFloat(post.score.toFixed(4))
-      }))
     });
   } catch (error) {
     console.error('Error in /api/evaluate:', error);
