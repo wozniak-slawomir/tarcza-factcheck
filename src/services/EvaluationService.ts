@@ -27,6 +27,7 @@ export interface VectorSearchResult {
 export class EvaluationService {
   private dbService = getDBService();
   private openAIService: OpenAIServiceInterface;
+  private embeddingCache = new Map<string, number[]>();
 
   constructor(openAIService: OpenAIServiceInterface) {
     this.openAIService = openAIService;
@@ -47,6 +48,31 @@ export class EvaluationService {
     }
 
     return text.trim();
+  }
+
+  /**
+   * Gets embedding for text with caching to avoid duplicate API calls
+   */
+  private async getCachedEmbedding(text: string): Promise<number[]> {
+    const textHash = text.trim().toLowerCase();
+    
+    if (this.embeddingCache.has(textHash)) {
+      console.log('Using cached embedding for text');
+      const cached = this.embeddingCache.get(textHash);
+      if (cached) return cached;
+    }
+
+    console.log('Generating new embedding for text');
+    const embedding = await this.openAIService.generateEmbedding(text);
+    this.embeddingCache.set(textHash, embedding);
+    
+    // Limit cache size to prevent memory issues
+    if (this.embeddingCache.size > 100) {
+      const firstKey = this.embeddingCache.keys().next().value;
+      if (firstKey) this.embeddingCache.delete(firstKey);
+    }
+    
+    return embedding;
   }
 
   /**
@@ -79,21 +105,26 @@ export class EvaluationService {
 
   /**
    * Formats related posts into a context string for the AI prompt
+   * Optimized to avoid unnecessary string operations
    */
   private formatRelatedPostsContext(posts: VectorSearchResult[]): string {
     if (posts.length === 0) {
       return 'No related posts found.';
     }
 
-    return posts
-      .map((post, index) => {
-        const title = post.title || 'N/A';
-        const content = post.content || post.text;
-        const score = post.score.toFixed(4);
+    // Pre-allocate array for better performance
+    const formattedPosts = new Array(posts.length);
+    
+    for (let i = 0; i < posts.length; i++) {
+      const post = posts[i];
+      const title = post.title || 'N/A';
+      const content = post.content || post.text;
+      const score = post.score.toFixed(4);
 
-        return `${index + 1}. (Similarity: ${score})\nTitle: ${title}\nContent: ${content}`;
-      })
-      .join('\n\n');
+      formattedPosts[i] = `${i + 1}. (Similarity: ${score})\nTitle: ${title}\nContent: ${content}`;
+    }
+
+    return formattedPosts.join('\n\n');
   }
 
   /**
@@ -177,29 +208,43 @@ Provide a JSON response with the following structure. IMPORTANT: The "reasoning"
   }
 
   /**
+   * Optimized method that gets both similarity and related posts in one operation
+   * This avoids duplicate embedding generation and database calls
+   */
+  private async getSimilarityAndRelatedPosts(text: string): Promise<{ similarity: number; relatedPosts: VectorSearchResult[] }> {
+    const embedding = await this.getCachedEmbedding(text);
+    
+    // Get both similarity (top match) and related posts in one search using cached embedding
+    const searchResult = await this.dbService.vectorSearch(embedding, 5);
+    
+    const similarity = searchResult.length > 0 ? searchResult[0].score || 0 : 0;
+    
+    return { similarity, relatedPosts: searchResult };
+  }
+
+  /**
    * Performs the complete evaluation process for a given text
    */
   async evaluateText(text: string): Promise<EvaluationResult> {
     console.log('Evaluating text similarity using Qdrant...');
-    const similarity = await this.dbService.compareText(text);
+    
+    // Get both similarity and related posts in one optimized operation
+    const { similarity, relatedPosts } = await this.getSimilarityAndRelatedPosts(text);
 
-    // If similarity is below threshold, skip expensive AI analysis
+    // Early return for exact duplicates (100% similarity) - skip AI analysis
+    if (similarity >= 0.9999) {
+      console.log(
+        `Similarity ${similarity.toFixed(4)} is 100% - exact duplicate detected, skipping AI analysis`
+      );
+      return this.createExactDuplicateResult(similarity, relatedPosts);
+    }
+
+    // Early return for low similarity - skip expensive AI analysis
     if (similarity <= SIMILARITY_THRESHOLD) {
       console.log(
         `Similarity ${similarity.toFixed(4)} below threshold ${SIMILARITY_THRESHOLD}, skipping AI analysis`
       );
       return this.createBelowThresholdResult(similarity);
-    }
-
-    // Get related posts for context
-    const relatedPosts = await this.dbService.vectorSearch(text, 5);
-
-    // If similarity is 100% (exact duplicate), skip AI analysis and flag immediately
-    if (similarity >= 0.9999) { // Use 0.9999 instead of 1.0 due to floating point precision
-      console.log(
-        `Similarity ${similarity.toFixed(4)} is 100% - exact duplicate detected, skipping AI analysis`
-      );
-      return this.createExactDuplicateResult(similarity, relatedPosts);
     }
 
     // Only perform expensive AI analysis for moderate similarity scores
