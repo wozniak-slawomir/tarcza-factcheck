@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@/components/ui/input";
 import {
   IconChevronLeft,
   IconChevronRight,
@@ -19,6 +18,7 @@ import { topWordsFromPosts } from "@/lib/utils";
 import TrendingChart from "./trending-chart";
 import type { ChartConfig } from "@/components/ui/chart";
 import { Textarea } from "./ui/textarea";
+import { Input } from "@/components/ui/input";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 type PostItem = { id: string; text: string; createdAt: string | null };
@@ -61,6 +61,7 @@ export default function PostList() {
   const [page, setPage] = React.useState(0);
   const [newText, setNewText] = React.useState("");
   const [addingPost, setAddingPost] = React.useState(false);
+  const [newUrl, setNewUrl] = React.useState("");
   const pageSize = 8;
   const { posts, loading, error, reloadPosts } = usePosts();
 
@@ -104,20 +105,27 @@ export default function PostList() {
     });
   };
 
+  const isValidUrl = (raw: string) => {
+    if (!raw) return true; // optional
+    return /^https?:\/\//i.test(raw.trim());
+  };
+
   const handleAddPost = async () => {
     if (!newText.trim()) return;
-
+    if (!isValidUrl(newUrl)) {
+      alert("URL musi zaczynać się od http:// lub https:// lub pozostać pusty");
+      return;
+    }
     try {
       setAddingPost(true);
       const res = await fetch("/api/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: newText }),
+        body: JSON.stringify({ text: newText, url: newUrl.trim() || undefined }),
       });
-
       if (!res.ok) throw new Error("Failed to add post");
-
       setNewText("");
+      setNewUrl("");
       await reloadPosts();
     } catch (err) {
       console.error("Error adding post:", err);
@@ -169,6 +177,32 @@ export default function PostList() {
     return items;
   }, [top]);
 
+  // Helper: convert plain text with URLs to clickable links for display
+  const linkify = React.useCallback((text: string) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g; // basic URL matcher
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) => {
+      if (/^https?:\/\//.test(part)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline break-all hover:text-primary/80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={i}>{part}</React.Fragment>;
+    });
+  }, []);
+
+  // (removed link insertion logic; URL now provided via separate input)
+
   const chartConfig = React.useMemo(() => {
     const base: ChartConfig = {
       visitors: { label: "Wystąpienia" },
@@ -198,6 +232,9 @@ export default function PostList() {
         <CardHeader>
           <CardDescription>
             <form action="submit" className="flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Dodaj post</span>
+              </div>
               <div className="relative">
                 <Textarea
                   placeholder="Wprowadź tekst posta..."
@@ -217,6 +254,33 @@ export default function PostList() {
                     {newText.length}
                   </span>
                   <span className="text-muted-foreground">/1500</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  placeholder="Opcjonalny URL (http:// lub https://)"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className={!isValidUrl(newUrl) ? "border-destructive focus-visible:border-destructive" : ""}
+                  maxLength={500}
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>
+                    {newUrl
+                      ? isValidUrl(newUrl)
+                        ? "URL zostanie zapisany osobno"
+                        : "Niepoprawny format URL"
+                      : "Pole opcjonalne"}
+                  </span>
+                  {newUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewUrl("")}
+                      className="text-[10px] underline text-primary hover:text-primary/80"
+                    >
+                      Wyczyść
+                    </button>
+                  )}
                 </div>
               </div>
               <Button onClick={handleAddPost} disabled={addingPost || !newText.trim()}>
@@ -256,9 +320,15 @@ export default function PostList() {
                   <TableRow key={post.id}>
                     <TableCell className="font-medium max-w-xs truncate">
                       <HoverCard>
-                        <HoverCardTrigger>{post.text}</HoverCardTrigger>
-                        <HoverCardContent side="top" align="start" className="w-fit max-w-sm text-sm leading-snug">
-                          {post.text}
+                        <HoverCardTrigger className="text-left cursor-default">
+                          <span className="block truncate max-w-xs">{linkify(post.text)}</span>
+                        </HoverCardTrigger>
+                        <HoverCardContent
+                          side="top"
+                          align="start"
+                          className="w-fit max-w-sm text-sm leading-snug break-words"
+                        >
+                          {linkify(post.text)}
                         </HoverCardContent>
                       </HoverCard>
                     </TableCell>
