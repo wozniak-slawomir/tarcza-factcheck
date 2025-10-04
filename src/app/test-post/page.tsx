@@ -21,8 +21,6 @@ interface Evaluation {
   flagged: boolean;
   confidence: number;
   reasoning: string;
-  similarityScore?: number;
-  matchType?: 'exact' | 'very-high' | 'high' | 'medium' | 'low' | 'none';
 }
 
 interface RelatedPost {
@@ -180,31 +178,7 @@ export default function TestPostPage() {
             <CardContent>
               <div className="space-y-4 max-w-[1000px]">
                 <div className="flex items-center gap-4">
-                  <Badge 
-                    variant={evaluationResult.flagged ? "destructive" : "default"}
-                  >
-                    {evaluationResult.flagged ? '⚠️ Flagged' : '✅ Approved'}
-                  </Badge>
-                  {evaluationResult.matchType && (
-                    <Badge variant="outline">
-                      {evaluationResult.matchType.toUpperCase().replace('-', ' ')}
-                    </Badge>
-                  )}
-                </div>
-                
-                {evaluationResult.similarityScore !== undefined && (
-                  <div className="flex items-center gap-4">
-                    <span className="font-medium">Similarity Score:</span>
-                    <Badge 
-                      className={`${getScoreColor(evaluationResult.similarityScore)} text-white`}
-                    >
-                      {(evaluationResult.similarityScore * 100).toFixed(2)}%
-                    </Badge>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">Confidence:</span>
+                  <span className="font-medium">Similarity Score:</span>
                   <Badge 
                     className={`${getScoreColor(evaluationResult.confidence)} text-white`}
                   >
