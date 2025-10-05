@@ -1,5 +1,5 @@
 import { QdrantClient } from '@qdrant/js-client-rest';
-import { SIMILARITY_THRESHOLD, OPENAI_EMBEDDING_SIZE } from '@/lib/constants';
+import { SIMILARITY_THRESHOLD, OPENAI_EMBEDDING_SIZE, URL_SIMILARITY_THRESHOLD, URL_UNSURE_THRESHOLD } from '@/lib/constants';
 import { OpenAIService } from './OpenAIService';
 import { OpenAIServiceInterface } from './OpenAIServiceInterface';
 
@@ -168,7 +168,7 @@ export class VectorService {
     }));
   }
 
-  async checkURL(url: string, urlSimilarityService: any): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }> {
+  async checkURL(url: string, urlSimilarityService: any): Promise<{ similarity: number; matchedUrl?: string; warning: boolean; status: 'fake' | 'true' | 'no_data' | 'unsure'; is_fake?: boolean }> {
     await this.ensureCollection();
 
     const scrollResult = await qdrantClient.scroll(COLLECTION_NAME, {
@@ -179,6 +179,7 @@ export class VectorService {
 
     let highestSimilarity = 0;
     let mostSimilarUrl: string | undefined;
+    let mostSimilarIsFake: boolean | undefined;
 
     for (const point of scrollResult.points) {
       if (point.payload && point.payload.url) {
@@ -188,16 +189,38 @@ export class VectorService {
         if (similarity > highestSimilarity) {
           highestSimilarity = similarity;
           mostSimilarUrl = existingUrl;
+          mostSimilarIsFake = point.payload.is_fake as boolean | undefined;
         }
       }
     }
 
-    const warning = highestSimilarity >= 0.9;
+    const warning = highestSimilarity >= URL_SIMILARITY_THRESHOLD;
+
+    // Determine status based on similarity and is_fake field
+    let status: 'fake' | 'true' | 'no_data' | 'unsure';
+    if (highestSimilarity >= URL_SIMILARITY_THRESHOLD) {
+      // High similarity - use the is_fake field from the matched URL
+      if (mostSimilarIsFake === true) {
+        status = 'fake';
+      } else if (mostSimilarIsFake === false) {
+        status = 'true';
+      } else {
+        status = 'unsure'; // is_fake is undefined
+      }
+    } else if (highestSimilarity >= URL_UNSURE_THRESHOLD) {
+      // Moderate similarity - unsure status
+      status = 'unsure';
+    } else {
+      // Low similarity - no data
+      status = 'no_data';
+    }
 
     return {
       similarity: highestSimilarity,
       matchedUrl: warning ? mostSimilarUrl : undefined,
-      warning
+      warning,
+      status,
+      is_fake: mostSimilarIsFake
     };
   }
 }

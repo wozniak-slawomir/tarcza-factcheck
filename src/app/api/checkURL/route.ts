@@ -23,11 +23,10 @@ export async function POST(request: NextRequest) {
     console.log(`API: URL check completed - Similarity: ${(result.similarity * 100).toFixed(2)}%`);
 
     return NextResponse.json({
-      success: true,
       similarity: result.similarity,
       similarityPercentage: `${(result.similarity * 100).toFixed(2)}%`,
       matchedUrl: result.matchedUrl,
-      warning: result.warning,
+      status: result.status,
       message: result.warning 
         ? `Warning: This URL has ${(result.similarity * 100).toFixed(2)}% similarity with an existing URL in our database.`
         : 'URL check completed successfully.'

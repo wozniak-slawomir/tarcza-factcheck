@@ -9,7 +9,7 @@ export interface DBService {
   compareText(text: string): Promise<number>;
   vectorSearch(text: string, limit?: number): Promise<VectorSearchResult[]>;
   vectorSearch(embedding: number[], limit?: number): Promise<VectorSearchResult[]>;
-  checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }>;
+  checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean; status: 'fake' | 'true' | 'no_data' | 'unsure'; is_fake?: boolean }>;
 }
 
 class DBServiceImpl implements DBService {
@@ -51,7 +51,7 @@ class DBServiceImpl implements DBService {
     }
   }
 
-  async checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean }> {
+  async checkURL(url: string): Promise<{ similarity: number; matchedUrl?: string; warning: boolean; status: 'fake' | 'true' | 'no_data' | 'unsure'; is_fake?: boolean }> {
     return this.vectorService.checkURL(url, this.urlSimilarityService);
   }
 }
