@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IconArrowRight, IconLock } from "@tabler/icons-react";
-import { persistDemoAuth } from "@/lib/demo-auth";
+import { isDemoAuthenticated, persistDemoAuth } from "@/lib/demo-auth";
 
 const MOCK_USERNAME = "admin";
 const MOCK_PASSWORD = "admin123";
@@ -18,6 +18,13 @@ export default function LoginPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isDemoAuthenticated()) {
+      setSuccess(true);
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
