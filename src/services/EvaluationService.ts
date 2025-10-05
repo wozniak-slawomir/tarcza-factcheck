@@ -1,18 +1,20 @@
 import { getDBService } from './DBService';
 import { OpenAIServiceInterface } from './OpenAIServiceInterface';
-import { SIMILARITY_THRESHOLD } from '@/lib/constants';
+import { SIMILARITY_THRESHOLD, EXACT_DUPLICATE_THRESHOLD } from '@/lib/constants';
 
 export interface EvaluationRequest {
   text: string;
 }
 
+export type NewsStatus = 'fake' | 'true' | 'no_data' | 'unsure';
+
 export interface EvaluationResult {
-  flagged: boolean;
   similarity: number;
   confidence: number;
   reasoning: string;
   relatedPostsCount?: number;
   relatedPosts?: VectorSearchResult[];
+  status: NewsStatus;
 }
 
 export interface VectorSearchResult {
@@ -21,7 +23,9 @@ export interface VectorSearchResult {
   score: number;
   title?: string;
   content?: string;
-  tag_id?: string;
+  is_fake?: boolean;
+  url?: string;
+  createdAt?: string;
 }
 
 export class EvaluationService {
@@ -80,12 +84,12 @@ export class EvaluationService {
    */
   private createBelowThresholdResult(similarity: number): EvaluationResult {
     return {
-      flagged: false,
       similarity: parseFloat(similarity.toFixed(4)),
       confidence: parseFloat(similarity.toFixed(4)),
       reasoning: 'Podobieństwo treści jest poniżej progu, nie znaleziono istotnych dopasowań w bazie danych',
       relatedPostsCount: 0,
       relatedPosts: [],
+      status: 'no_data',
     };
   }
 
@@ -93,13 +97,18 @@ export class EvaluationService {
    * Creates a high-confidence flagged result for exact duplicates (100% similarity)
    */
   private createExactDuplicateResult(similarity: number, relatedPosts: VectorSearchResult[]): EvaluationResult {
+    // Determine status based on the first related post's is_fake value
+    const firstPost = relatedPosts[0];
+    const status: NewsStatus = firstPost?.is_fake === true ? 'fake' : 
+                              firstPost?.is_fake === false ? 'true' : 'no_data';
+
     return {
-      flagged: true,
       similarity: parseFloat(similarity.toFixed(4)),
       confidence: 1.0, // Maximum confidence for exact duplicates
-      reasoning: 'Treść jest w 100% identyczna z istniejącym postem w bazie danych - prawdopodobnie duplikat lub spam',
+      reasoning: `Treść jest w ${(EXACT_DUPLICATE_THRESHOLD * 100).toFixed(2)}% identyczna z istniejącym postem w bazie danych - prawdopodobnie duplikat lub spam`,
       relatedPostsCount: relatedPosts.length,
       relatedPosts: relatedPosts,
+      status,
     };
   }
 
@@ -154,9 +163,9 @@ Please analyze:
 
 Provide a JSON response with the following structure. IMPORTANT: The "reasoning" field MUST be in Polish:
 {
-  "flagged": true | false,
   "confidence": 0.0-1.0,
-  "reasoning": "krótkie wyjaśnienie po polsku"
+  "reasoning": "krótkie wyjaśnienie po polsku",
+  "status": "fake" | "true" | "no_data" | "unsure"
 }`;
   }
 
@@ -171,40 +180,67 @@ Provide a JSON response with the following structure. IMPORTANT: The "reasoning"
         const parsed = JSON.parse(jsonMatch[0]) as Partial<EvaluationResult>;
 
         if (
-          typeof parsed.flagged === 'boolean' &&
           typeof parsed.confidence === 'number' &&
-          typeof parsed.reasoning === 'string'
+          typeof parsed.reasoning === 'string' &&
+          typeof parsed.status === 'string' &&
+          ['fake', 'true', 'no_data', 'unsure'].includes(parsed.status)
         ) {
           return {
-            flagged: parsed.flagged,
             similarity: parseFloat(similarity.toFixed(4)),
             confidence: Math.max(0, Math.min(1, parsed.confidence)),
             reasoning: parsed.reasoning,
             relatedPostsCount: relatedPosts.length,
             relatedPosts: relatedPosts,
+            status: parsed.status as NewsStatus,
           };
         }
       }
 
-      return this.createFallbackEvaluationResult(aiResponse, similarity);
+      return this.createFallbackEvaluationResult(aiResponse, similarity, relatedPosts);
     } catch (error) {
       console.error('Error parsing AI response:', error);
-      return this.createFallbackEvaluationResult(aiResponse, similarity);
+      return this.createFallbackEvaluationResult(aiResponse, similarity, relatedPosts);
     }
   }
 
   /**
    * Creates a fallback evaluation result when AI response parsing fails
    */
-  private createFallbackEvaluationResult(aiResponse: string, similarity: number = 0.5): EvaluationResult {
+  private createFallbackEvaluationResult(aiResponse: string, similarity: number, relatedPosts: VectorSearchResult[]): EvaluationResult {
+    const fallbackStatus = this.determineStatusFromRelatedPosts(relatedPosts);
     return {
-      flagged: false,
       similarity: parseFloat(similarity.toFixed(4)),
-      confidence: 0.5,
+      confidence: Math.max(0, Math.min(1, similarity)), // Use similarity as confidence
       reasoning: aiResponse || 'Nie można przetworzyć odpowiedzi AI',
-      relatedPostsCount: 0,
-      relatedPosts: [],
+      relatedPostsCount: relatedPosts.length,
+      relatedPosts: relatedPosts,
+      status: fallbackStatus,
     };
+  }
+
+  /**
+   * Determines the news status based on related posts
+   */
+  private determineStatusFromRelatedPosts(relatedPosts: VectorSearchResult[]): NewsStatus {
+    if (relatedPosts.length === 0) return 'no_data';
+
+    // Count fake and true posts
+    let fakeCount = 0;
+    let trueCount = 0;
+    
+    for (const post of relatedPosts) {
+      if (post.is_fake === true) fakeCount++;
+      else if (post.is_fake === false) trueCount++;
+    }
+
+    // If we have more fake posts than true posts, classify as fake
+    if (fakeCount > trueCount) return 'fake';
+    // If we have more true posts than fake posts, classify as true
+    if (trueCount > fakeCount) return 'true';
+    // If equal counts or mixed results, return unsure
+    if (fakeCount > 0 && trueCount > 0) return 'unsure';
+    // If no clear classification, return no_data
+    return 'no_data';
   }
 
   /**
@@ -232,9 +268,9 @@ Provide a JSON response with the following structure. IMPORTANT: The "reasoning"
     const { similarity, relatedPosts } = await this.getSimilarityAndRelatedPosts(text);
 
     // Early return for exact duplicates (100% similarity) - skip AI analysis
-    if (similarity >= 0.9999) {
+    if (similarity >= EXACT_DUPLICATE_THRESHOLD) {
       console.log(
-        `Similarity ${similarity.toFixed(4)} is 100% - exact duplicate detected, skipping AI analysis`
+        `Similarity ${similarity.toFixed(4)} is ${(EXACT_DUPLICATE_THRESHOLD * 100).toFixed(2)}% - exact duplicate detected, skipping AI analysis`
       );
       return this.createExactDuplicateResult(similarity, relatedPosts);
     }
