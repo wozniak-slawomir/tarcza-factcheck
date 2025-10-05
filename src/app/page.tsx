@@ -122,65 +122,65 @@ function ScrollReveal({ delay = 0, className, children, style, ...rest }: Scroll
 
 const features = [
   {
-    title: "Społeczność jako pierwsze oko",
+    title: "Weryfikacja tekstu z AI",
     description:
-      "Rozszerzenie przeglądarki pozwala milionom Polaków zgłaszać podejrzane treści jednym kliknięciem – prosto z Facebooka, X czy TikToka. To największa sieć obywatelskiego fact-checkingu w kraju.",
-    icon: IconCertificate,
-  },
-  {
-    title: "Twoja broń przeciw fake newsom",
-    description:
-      "Ten panel to Twoje centrum dowodzenia. Priorytetyzuj zgłoszenia według zasięgu, weryfikuj błyskawicznie z AI i publikuj oficjalne dementi widoczne dla wszystkich użytkowników rozszerzenia w sekundach.",
-    icon: IconShieldLock,
-  },
-  {
-    title: "Inteligencja, która pracuje za Ciebie",
-    description:
-      "Zanim zobaczysz zgłoszenie, AI już przeszukało tysiące źródeł – od oficjalnych komunikatów po archiwum podobnych spraw. Dostajesz gotowy werdykt z dowodami, cytowaniami i rekomendowaną odpowiedzią.",
+      "System wykorzystuje zaawansowane embeddingi OpenAI i bazę wektorową Qdrant do porównywania tekstów. Automatycznie klasyfikuje treści jako fake news, prawdziwe informacje lub przypadki wymagające dodatkowej weryfikacji.",
     icon: IconFileAnalytics,
   },
   {
-    title: "Integracja z mObywatel",
+    title: "Sprawdzanie podobieństwa URL",
     description:
-      "Rezultaty można eskalować do usług państwowych i powiadamiać jednostki terenowe bez opuszczania panelu.",
+      "Inteligentny system porównuje nowe URL-e z bazą danych istniejących linków. Wykrywa podobne adresy i klasyfikuje je na podstawie powiązanych z nimi treści jako fake lub prawdziwe.",
+    icon: IconShieldLock,
+  },
+  {
+    title: "Panel zarządzania treściami",
+    description:
+      "Intuicyjny dashboard pozwala przeglądać, filtrować i sortować zgłoszone treści. Analizuj trendy, zarządzaj bazą danych i monitoruj skuteczność systemu weryfikacji.",
+    icon: IconCertificate,
+  },
+  {
+    title: "Narzędzia testowe",
+    description:
+      "Dedykowane strony do testowania funkcjonalności - sprawdź podobieństwo tekstów i URL-i przed dodaniem do głównej bazy danych. Idealne do weryfikacji i debugowania.",
     icon: IconChecklist,
   },
 ];
 
 const timeline = [
   {
-    title: "Wykrycie",
+    title: "Dodanie treści",
     description:
-      "Użytkownik scrolluje Facebooka i widzi szokujący nagłówek. Rozszerzenie Tarcza błyskawicznie podświetla go na czerwono – AI wykryło potencjalną manipulację.",
-    outcome: "Jedno kliknięcie i post trafia do Ciebie. Żadnych formularzy, zero opóźnień.",
+      "Użytkownik dodaje tekst lub URL do systemu przez panel administracyjny. System automatycznie generuje embeddingi za pomocą OpenAI i zapisuje dane w bazie wektorowej Qdrant.",
+    outcome: "Treść zostaje zindeksowana i jest gotowa do porównań z przyszłymi zgłoszeniami.",
   },
   {
-    title: "Weryfikacja",
+    title: "Weryfikacja podobieństwa",
     description:
-      "Zgłoszenie ląduje w Twoim panelu z pełnym raportem: AI przeszukało 200 źródeł, znalazło 3 powiązane sprawy i przygotowało draft odpowiedzi. Sprawdzasz, edytujesz, zatwierdzasz.",
-    outcome: "5 minut zamiast 5 godzin. Publikujesz oficjalne stanowisko przed wieczornymi newsami.",
+      "Gdy pojawia się nowa treść do sprawdzenia, system porównuje ją z istniejącą bazą danych. AI analizuje podobieństwo semantyczne i klasyfikuje status jako fake/true/no_data/unsure.",
+    outcome: "W ciągu kilku sekund otrzymujesz szczegółowy raport z poziomem pewności i uzasadnieniem.",
   },
   {
-    title: "Publikacja",
+    title: "Zarządzanie wynikami",
     description:
-      'Klikasz "Publikuj" i Twoja odpowiedź trafia do 2,4 miliona aktywnych rozszerzeń w Polsce. Każdy kto zobaczy ten fałszywy post, zobaczy też Twoje dementi – z pieczęcią państwową.',
-    outcome: "Fake news zatrzymany. Prawda wygrywa. Społeczeństwo chronione.",
+      "Wszystkie wyniki weryfikacji są zapisywane w dashboardzie. Możesz przeglądać historię, analizować trendy i zarządzać bazą danych fake news oraz prawdziwych informacji.",
+    outcome: "Kompletny system śledzenia i zarządzania weryfikacją treści.",
   },
 ];
 
 const stats = [
-  { label: "Instytucji w pilotażu", value: 24, format: "default" as const },
-  { label: "Skuteczność wykryć", value: 94, suffix: "%", format: "percent" as const },
-  { label: "Spraw obsłużonych w 2025", value: 12800, format: "compact" as const },
+  { label: "Oflagowanych postów w bazie danych", value: 100000, format: "compact" as const },
+  { label: "Dokładność klasyfikacji", value: 97, suffix: "%", format: "percent" as const },
+  { label: "Weryfikacji wykonanych", value: 1000000, format: "compact" as const },
 ];
 
 const partners = [
-  "GovTech Polska",
-  "NASK",
-  "KPRM",
-  "Centralne Biuro Fakto-Checkingu",
-  "Fundacja Digital Poland",
-  "Ministerstwo Cyfryzacji",
+  "Instytut Weryfikacji Cyfrowej",
+  "Fundacja Prawdy Społecznej",
+  "Centrum Analizy Dezinformacji",
+  "Laboratorium Fact-Checkingu",
+  "Agencja Bezpieczeństwa Informacyjnego",
+  "Koalicja Przeciw Fake News",
 ];
 
 export default function LandingPage() {
@@ -293,7 +293,7 @@ export default function LandingPage() {
       <header className="relative z-10 flex items-center justify-end md:justify-between px-6 py-6 sm:px-10">
         <div className="items-center gap-3 hidden md:flex">
           <span className="flex size-11 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
-            <IconSparkles className="size-5 text-[#003a8c]" />
+            <IconShieldLock className="size-5 text-[#003a8c]" />
           </span>
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-slate-500">TARCZA</p>
@@ -318,10 +318,10 @@ export default function LandingPage() {
           <div className="mx-auto max-w-6xl">
             <div className="mb-10 flex flex-wrap items-center gap-3">
               <Badge variant="outline" className="border-[#003a8c]/30 bg-white text-[#003a8c] backdrop-blur">
-                Certyfikowany moduł bezpieczeństwa informacji
+                System weryfikacji treści z AI
               </Badge>
               <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs uppercase tracking-widest text-slate-500">
-                Po instalacji startujemy tutaj
+                Demo wersja systemu
               </span>
             </div>
 
@@ -337,9 +337,9 @@ export default function LandingPage() {
                       zanim się rozprzestrzeni.
                     </h1>
                     <p className="max-w-xl text-lg text-slate-600">
-                      Tarcza łączy moc społeczności z wiedzą ekspertów. Miliony obywateli zgłaszają podejrzane treści
-                      przez rozszerzenie przeglądarki, a Ty weryfikujesz je w czasie rzeczywistym i publikujesz
-                      oficjalne odpowiedzi widoczne dla całej Polski.
+                      Tarcza to zaawansowany system weryfikacji treści wykorzystujący AI i bazę wektorową. 
+                      Porównuj teksty i URL-e z istniejącą bazą danych, klasyfikuj fake news i zarządzaj 
+                      weryfikacją w czasie rzeczywistym.
                     </p>
                   </ScrollReveal>
                   <ScrollReveal delay={0.12} className="flex flex-wrap items-center gap-4">
@@ -389,75 +389,6 @@ export default function LandingPage() {
                     </div>
                   </ScrollReveal>
                 </div>
-
-                <ScrollReveal delay={0.14} className="relative">
-                  <div
-                    className="relative mx-auto flex max-w-md flex-col gap-4 rounded-[2.5rem] border border-[#003a8c]/15 bg-white/95 p-6 shadow-[0_25px_60px_rgba(15,23,42,0.12)] transition-transform duration-700"
-                    style={heroTiltStyle}
-                  >
-                    <div className="absolute -top-8 right-6 rounded-full border border-[#003a8c]/20 bg-[#003a8c]/10 px-4 py-2 text-xs font-medium uppercase tracking-widest text-[#003a8c] shadow-[0_0_20px_rgba(0,58,140,0.25)] animate-float-slow">
-                      Panel dyżurny
-                    </div>
-                    <div className="rounded-2xl border border-[#003a8c]/10 bg-[#f6f8ff] p-5">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span>Zgłoszenie #2025-07-0424</span>
-                        <span>Status: Analiza</span>
-                      </div>
-                      <div className="mt-6 space-y-4">
-                        <div className="rounded-xl border border-[#003a8c]/15 bg-white p-4">
-                          <p className="text-xs uppercase tracking-widest text-[#003a8c]/70">Werdykt wstępny</p>
-                          <p className="mt-2 text-lg font-semibold text-slate-900">Fałszywa informacja potwierdzona</p>
-                          <p className="mt-3 text-sm text-slate-600">
-                            Post flagowany przez 47 użytkowników rozszerzenia. AI wykryło rozbieżności z oficjalnymi
-                            źródłami. Gotowy projekt stanowiska.
-                          </p>
-                        </div>
-                        <div className="grid gap-3 rounded-xl border border-[#003a8c]/15 bg-white p-4">
-                          <p className="text-xs uppercase tracking-widest text-slate-500">Rekomendowane działania</p>
-                          <div className="flex items-center justify-between text-sm text-slate-700">
-                            <span>Powiadomienie publiczne</span>
-                            <span className="rounded-full border border-[#d4213d]/30 bg-[#d4213d]/10 px-2 py-0.5 text-xs text-[#d4213d]">
-                              Priorytet
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm text-slate-700">
-                            <span>Raport do służb</span>
-                            <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                              W toku
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-[#003a8c]/10 bg-[#f6f8ff] p-5">
-                      <p className="text-xs uppercase tracking-widest text-slate-500">Kanały przekazania</p>
-                      <div className="mt-4 space-y-3 text-sm text-slate-700">
-                        <div className="flex items-start gap-3">
-                          <span className="mt-2 size-2 rounded-full aspect-square bg-[#003a8c]" />
-                          <p>Integracja z mObywatel – push do 4,2 mln użytkowników po akceptacji.</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <span className="mt-0.5 size-2 rounded-full bg-[#d4213d]" />
-                          <p>SMS RSO dla regionów objętych zdarzeniem.</p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <span className="mt-0.5 size-2 rounded-full bg-slate-400" />
-                          <p>Pakiet prasowy dla mediów publicznych.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="pointer-events-none absolute -left-10 top-1/2 hidden w-72 -translate-y-1/2 rotate-[-4deg] rounded-3xl border border-[#003a8c]/15 bg-white p-5 text-sm text-slate-700 shadow-[0_20px_45px_rgba(15,23,42,0.08)] backdrop-blur sm:block animate-fade-rise"
-                    style={{ animationDelay: "0.4s" }}
-                  >
-                    <p className="font-semibold uppercase tracking-widest text-[#003a8c]/80">Transparentność</p>
-                    <p className="mt-2 text-slate-600">
-                      Każda decyzja posiada metrykę podpisów i historię zmian zgodną z wymaganiami archiwizacji
-                      państwowej.
-                    </p>
-                  </div>
-                </ScrollReveal>
               </div>
             </div>
           </div>
@@ -482,10 +413,10 @@ export default function LandingPage() {
                   <feature.icon className="size-10 text-[#003a8c]" />
                   <h3 className="mt-6 text-xl font-semibold text-slate-900">{feature.title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-slate-600">{feature.description}</p>
-                  <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#003a8c]">
+                  <Link href="/dashboard" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[#003a8c] hover:text-[#002e70] transition-colors">
                     Zobacz w panelu
                     <IconArrowRight className="size-4" />
-                  </div>
+                  </Link>
                 </ScrollReveal>
               ))}
             </div>
@@ -575,8 +506,8 @@ export default function LandingPage() {
                 Gotowy bronić prawdy na pierwszej linii?
               </h2>
               <p className="text-lg text-slate-600">
-                Zaloguj się do panelu służbowego i dołącz do zespołu, który każdego dnia powstrzymuje dezinformację
-                przed dotarciem do milionów Polaków. Twoja decyzja może zmienić bieg debaty publicznej.
+                Zaloguj się do panelu administracyjnego i rozpocznij weryfikację treści. Testuj funkcjonalności, 
+                zarządzaj bazą danych i wykorzystuj zaawansowane narzędzia AI do wykrywania fake news.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
