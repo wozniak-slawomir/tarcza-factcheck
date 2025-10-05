@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: "Rozszerzenie przeglądarki wykrywające dezinformację + dashboard dla pracowników administracji weryfikujących zgłoszenia obywateli.",
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
     ],
   },
 };

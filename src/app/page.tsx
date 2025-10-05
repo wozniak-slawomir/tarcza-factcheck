@@ -293,7 +293,7 @@ export default function LandingPage() {
       <header className="relative z-10 flex items-center justify-end md:justify-between px-6 py-6 sm:px-10">
         <div className="items-center gap-3 hidden md:flex">
           <span className="flex size-11 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
-            <IconShieldLock className="size-5 text-[#003a8c]" />
+            <img src="/logo.png" alt="Tarcza Logo" className="size-8" />
           </span>
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-slate-500">TARCZA</p>
