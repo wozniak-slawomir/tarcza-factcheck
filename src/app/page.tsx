@@ -424,6 +424,206 @@ export default function LandingPage() {
         </section>
 
         <section className="px-6 sm:px-10">
+          <div className="mx-auto max-w-6xl">
+            <ScrollReveal delay={0.05} className="mb-16 text-center">
+              <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+                Rozszerzenie przeglądarki
+              </h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                Zainstaluj rozszerzenie Tarcza w swojej przeglądarce i weryfikuj treści w czasie rzeczywistym na każdym odwiedzanym portalu.
+              </p>
+            </ScrollReveal>
+
+            <div className="grid gap-8 md:grid-cols-2 lg:gap-12">
+              <ScrollReveal delay={0.1} className="space-y-6">
+                <div className="rounded-2xl border border-[#003a8c]/15 bg-white/90 p-6 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-[#003a8c]/20 bg-[#003a8c]/10">
+                      <IconShieldCheck className="size-5 text-[#003a8c]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">Weryfikacja w czasie rzeczywistym</h3>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Kliknij na dowolny tekst na stronie internetowej - rozszerzenie automatycznie przeanalizuje treść 
+                    i pokaże wynik weryfikacji z poziomem pewności i szczegółowym uzasadnieniem.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[#003a8c]/15 bg-white/90 p-6 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-[#003a8c]/20 bg-[#003a8c]/10">
+                      <IconFileAnalytics className="size-5 text-[#003a8c]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">Inteligentne wykrywanie</h3>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Rozszerzenie automatycznie wykrywa podejrzane treści i podświetla je kolorami ostrzegawczymi. 
+                    Działa na wszystkich popularnych portalach: Facebook, Twitter, portale informacyjne i fora dyskusyjne.
+                  </p>
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal delay={0.15} className="space-y-6">
+                <div className="rounded-2xl border border-[#003a8c]/15 bg-white/90 p-6 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-[#003a8c]/20 bg-[#003a8c]/10">
+                      <IconCertificate className="size-5 text-[#003a8c]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">Przenośny panel</h3>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Przeciągalny panel narzędziowy zawsze dostępny na stronie. Jednym kliknięciem aktywuj tryb weryfikacji 
+                    i wybierz dowolny element do sprawdzenia. Wyniki wyświetlane w eleganckich bąbelkach informacyjnych.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-[#003a8c]/15 bg-white/90 p-6 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-[#003a8c]/20 bg-[#003a8c]/10">
+                      <IconChecklist className="size-5 text-[#003a8c]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">Integracja z platformą</h3>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Rozszerzenie łączy się z główną platformą Tarcza, wykorzystując tę samą bazę danych i algorytmy AI. 
+                    Każda weryfikacja jest zapisywana i przyczynia się do ulepszania systemu dla wszystkich użytkowników.
+                  </p>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal delay={0.2} className="mt-12 text-center">
+              <div className="inline-flex items-center gap-3 rounded-2xl border border-[#003a8c]/20 bg-[#003a8c]/5 px-6 py-4">
+                <div className="flex size-8 items-center justify-center rounded-lg border border-[#003a8c]/20 bg-white">
+                  <span className="text-lg">🛡️</span>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-[#003a8c]">Dostępne dla Chrome</p>
+                  <p className="text-xs text-slate-600">Zainstaluj z Chrome Web Store lub w trybie deweloperskim</p>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        <section className="px-6 sm:px-10">
+          <div className="mx-auto max-w-6xl">
+            <ScrollReveal delay={0.05} className="mb-16 text-center">
+              <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+                Jak to działa w praktyce
+              </h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                Zobacz przykłady wykrywania fake news i prawdziwych informacji przez rozszerzenie Tarcza
+              </p>
+            </ScrollReveal>
+
+            <div className="grid gap-8 lg:grid-cols-2">
+              {/* Fake News Example */}
+              <ScrollReveal delay={0.1}>
+                <div className="relative rounded-2xl border border-red-200 bg-white/90 p-6 shadow-[0_15px_40px_rgba(220,38,38,0.1)]">
+                  <div className="absolute -top-3 left-6 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                    🚨 FAKE NEWS WYKRYTY
+                  </div>
+                  
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-lg border border-red-100 bg-red-50 p-4">
+                      <p className="text-sm font-medium text-red-900 mb-2">Analizowany tekst:</p>
+                      <p className="text-sm text-red-800 italic">
+                        "Prezydent podpisał ustawę o podwyżce podatków o 50%. Nowe przepisy wejdą w życie już jutro."
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Poziom pewności:</span>
+                        <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">94%</span>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700">Uzasadnienie:</p>
+                        <p className="text-sm text-slate-600">
+                          Informacja nie została potwierdzona przez oficjalne źródła. Brak wzmianki w mediach publicznych. 
+                          Podobne treści zostały już wcześniej oznaczone jako fałszywe przez ekspertów.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700">Rekomendacja:</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-600">⚠️</span>
+                          <span className="text-sm text-red-700">Nie udostępniaj - prawdopodobnie fałszywa informacja</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              {/* True News Example */}
+              <ScrollReveal delay={0.15}>
+                <div className="relative rounded-2xl border border-green-200 bg-white/90 p-6 shadow-[0_15px_40px_rgba(34,197,94,0.1)]">
+                  <div className="absolute -top-3 left-6 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                    ✅ PRAWDA POTWIERDZONA
+                  </div>
+                  
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+                      <p className="text-sm font-medium text-green-900 mb-2">Analizowany tekst:</p>
+                      <p className="text-sm text-green-800 italic">
+                        "Ministerstwo Zdrowia ogłosiło nowy program szczepień przeciwko grypie dla seniorów powyżej 65. roku życia."
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Poziom pewności:</span>
+                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">98%</span>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700">Uzasadnienie:</p>
+                        <p className="text-sm text-slate-600">
+                          Informacja potwierdzona przez oficjalne źródła: Ministerstwo Zdrowia, media publiczne. 
+                          Program został ogłoszony podczas konferencji prasowej z udziałem ministra.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-slate-700">Rekomendacja:</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600">✅</span>
+                          <span className="text-sm text-green-700">Możesz bezpiecznie udostępniać - informacja wiarygodna</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal delay={0.2} className="mt-12 text-center">
+              <div className="rounded-2xl border border-[#003a8c]/15 bg-gradient-to-r from-[#003a8c]/5 to-[#d4213d]/5 p-8">
+                <h3 className="text-xl font-semibold text-slate-900 mb-4">Jak używać rozszerzenia</h3>
+                <div className="grid gap-4 md:grid-cols-3 text-sm text-slate-600">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-[#003a8c]/10 text-[#003a8c] font-semibold">1</div>
+                    <span>Zainstaluj rozszerzenie Tarcza</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-[#003a8c]/10 text-[#003a8c] font-semibold">2</div>
+                    <span>Kliknij na tekst do weryfikacji</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-[#003a8c]/10 text-[#003a8c] font-semibold">3</div>
+                    <span>Otrzymaj natychmiastowy wynik</span>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        <section className="px-6 sm:px-10">
           <div className="mx-auto max-w-5xl rounded-3xl border border-[#003a8c]/15 bg-white/90 p-10 shadow-[0_20px_55px_rgba(15,23,42,0.09)] backdrop-blur-lg">
             <ScrollReveal delay={0.05} className="space-y-2">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Partnerstwa pilotażowe</p>
