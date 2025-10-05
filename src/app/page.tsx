@@ -15,6 +15,7 @@ import {
 import clsx from "clsx";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { isDemoAuthenticated } from "@/lib/demo-auth";
 import {
   IconArrowRight,
   IconCertificate,
@@ -184,6 +185,7 @@ const partners = [
 
 export default function LandingPage() {
   const [animatedStats, setAnimatedStats] = useState(() => stats.map(() => 0));
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const heroRef = useRef<HTMLDivElement | null>(null);
   const pointerFrame = useRef<number | null>(null);
@@ -194,6 +196,10 @@ export default function LandingPage() {
     []
   );
   const partnerTicker = useMemo(() => [...partners, ...partners], []);
+
+  useEffect(() => {
+    setIsAuthenticated(isDemoAuthenticated());
+  }, []);
 
   useEffect(() => {
     const increments = stats.map((stat) => Math.max(1, Math.floor(stat.value / 80)));
@@ -295,22 +301,15 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="hidden text-[#003a8c] border-[#003a8c]/30 bg-white hover:bg-[#edf2ff] sm:inline-flex"
-            asChild
-          >
-            <Link href="/login">Logowanie</Link>
-          </Button>
-          <Button variant="ghost" className="text-slate-600 hover:text-[#003a8c]" asChild>
-            <Link href="/dashboard">Przejdź do panelu</Link>
-          </Button>
-          <Button className="bg-[#003a8c] shadow-[0_0_25px_rgba(0,58,140,0.35)] hover:bg-[#002e70]" asChild>
-            <Link href="/test-post">
-              Tryb testowy
-              <IconArrowRight className="size-4" />
-            </Link>
-          </Button>
+          {!isAuthenticated && (
+            <Button
+              variant="outline"
+              className="hidden text-[#003a8c] border-[#003a8c]/30 bg-white hover:bg-[#edf2ff] sm:inline-flex"
+              asChild
+            >
+              <Link href="/login">Logowanie</Link>
+            </Button>
+          )}
         </div>
       </header>
 
@@ -346,12 +345,12 @@ export default function LandingPage() {
                   <ScrollReveal delay={0.12} className="flex flex-wrap items-center gap-4">
                     <Button
                       size="lg"
-                      className="bg-[#d4213d] text-white shadow-[0_12px_35px_rgba(212,33,61,0.45)] hover:bg-[#bb1c34]"
+                      className="bg-[#d4213d] text-white shadow-[0_20px_50px_rgba(212,33,61,0.6)] hover:bg-[#bb1c34] text-lg font-semibold px-8 py-4 rounded-xl border-2 border-[#d4213d]/20 transform hover:scale-105 transition-all duration-200"
                       asChild
                     >
                       <Link href="/dashboard">
                         Rozpocznij weryfikację
-                        <IconArrowRight className="size-5" />
+                        <IconArrowRight className="size-6 ml-2" />
                       </Link>
                     </Button>
                     <Button
@@ -583,12 +582,12 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Button
                 size="lg"
-                className="bg-[#003a8c] text-white shadow-[0_12px_35px_rgba(0,58,140,0.35)] hover:bg-[#002e70]"
+                className="bg-[#003a8c] text-white shadow-[0_20px_50px_rgba(0,58,140,0.5)] hover:bg-[#002e70] text-lg font-semibold px-8 py-4 rounded-xl border-2 border-[#003a8c]/20 transform hover:scale-105 transition-all duration-200"
                 asChild
               >
                 <Link href="/dashboard">
                   Zaloguj się służbowo
-                  <IconArrowRight className="size-5" />
+                  <IconArrowRight className="size-6 ml-2" />
                 </Link>
               </Button>
               <Button
