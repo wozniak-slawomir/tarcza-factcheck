@@ -19,7 +19,7 @@ const data = {
   user: {
     name: "prompcik",
     email: "ops@prompcik.dev",
-    avatar: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
+    avatar: "../../public/favicon.png",
   },
   navMain: [
     {

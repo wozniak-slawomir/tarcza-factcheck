@@ -132,7 +132,7 @@ export default function PostList() {
   };
 
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-[1fr_2fr]">
       <div className="flex flex-col gap-4">
         <Card className="@container/card">
           <CardHeader>
@@ -149,35 +149,41 @@ export default function PostList() {
         <CardHeader>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button
-              variant={filter === "all" ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={() => setFilter("all")}
-              className="text-xs"
+              className={`text-xs ${filter === "all" ? "" : "opacity-70 scale-80"}`}
             >
               <IconFilter className="h-3 w-3 mr-1" />
               Wszystkie
             </Button>
             <Button
-              variant={filter === "real" ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={() => setFilter("real")}
-              className="text-xs text-green-600 border-green-200 hover:bg-green-50"
+              className={`text-xs text-green-600 border-green-200 hover:bg-green-50 ${
+                filter === "real" ? "" : "opacity-70 scale-80"
+              }`}
             >
               Prawdziwe
             </Button>
             <Button
-              variant={filter === "fake" ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={() => setFilter("fake")}
-              className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+              className={`text-xs text-red-600 border-red-200 hover:bg-red-50 ${
+                filter === "fake" ? "" : "opacity-70 scale-80"
+              }`}
             >
               Fałszywe
             </Button>
             <Button
-              variant={filter === "unknown" ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={() => setFilter("unknown")}
-              className="text-xs text-gray-600 border-gray-200 hover:bg-gray-50"
+              className={`text-xs text-gray-600 border-gray-200 hover:bg-gray-50 ${
+                filter === "unknown" ? "" : "opacity-70 scale-80"
+              }`}
             >
               Nieznane
             </Button>
