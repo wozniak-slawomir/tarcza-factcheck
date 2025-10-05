@@ -8,24 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-interface SearchResult {
-  id: string;
-  text: string;
-  score: number;
-  title?: string;
-  content?: string;
-  is_fake?: boolean;
-  url?: string;
-  createdAt?: string;
-}
 
 interface Evaluation {
-  flagged: boolean;
   similarity: number;
   confidence: number;
   reasoning: string;
   relatedPostsCount?: number;
   relatedPosts?: Array<{ id: string; text: string; score: number; title?: string; content?: string; is_fake?: boolean; url?: string; createdAt?: string }>;
+  status: 'fake' | 'true' | 'no_data' | 'unsure';
   evaluation?: {
     verdict: string;
     reasoning: string;
@@ -42,7 +32,6 @@ interface RelatedPost {
 
 export default function TestPostPage() {
   const [testText, setTestText] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [evaluationResult, setEvaluationResult] = useState<Evaluation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,36 +47,6 @@ export default function TestPostPage() {
     setExpandedPosts(newExpanded);
   };
 
-  const handleVectorSearch = async () => {
-    if (!testText.trim()) {
-      setError('Please enter some text to search');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/vector-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: testText, limit: 10 }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to perform vector search');
-      }
-
-      const data = await response.json();
-      setSearchResults(data.results);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleEvaluate = async () => {
     if (!testText.trim()) {
@@ -125,6 +84,51 @@ export default function TestPostPage() {
     if (score >= 0.6) return 'bg-orange-500';
     if (score >= 0.4) return 'bg-yellow-500';
     return 'bg-green-500';
+  };
+
+  const getStatusVariant = (status: 'fake' | 'true' | 'no_data' | 'unsure') => {
+    switch (status) {
+      case 'fake':
+        return 'destructive' as const;
+      case 'true':
+        return 'default' as const;
+      case 'unsure':
+        return 'secondary' as const;
+      case 'no_data':
+        return 'secondary' as const;
+      default:
+        return 'secondary' as const;
+    }
+  };
+
+  const getStatusClassName = (status: 'fake' | 'true' | 'no_data' | 'unsure') => {
+    switch (status) {
+      case 'fake':
+        return 'bg-red-600 hover:bg-red-700 text-white';
+      case 'true':
+        return 'bg-green-600 hover:bg-green-700 text-white';
+      case 'unsure':
+        return 'bg-yellow-600 hover:bg-yellow-700 text-white';
+      case 'no_data':
+        return 'bg-gray-500 hover:bg-gray-600 text-white';
+      default:
+        return 'bg-gray-500 hover:bg-gray-600 text-white';
+    }
+  };
+
+  const getStatusText = (status: 'fake' | 'true' | 'no_data' | 'unsure') => {
+    switch (status) {
+      case 'fake':
+        return 'FAKE NEWS';
+      case 'true':
+        return 'TRUE NEWS';
+      case 'unsure':
+        return 'UNSURE';
+      case 'no_data':
+        return 'NO DATA';
+      default:
+        return 'UNKNOWN';
+    }
   };
 
   const getScoreText = (score: number) => {
@@ -166,13 +170,6 @@ export default function TestPostPage() {
             
             <div className="flex gap-2">
               <Button 
-                onClick={handleVectorSearch} 
-                disabled={isLoading || !testText.trim()}
-                variant="outline"
-              >
-                {isLoading ? 'Searching...' : 'Vector Search'}
-              </Button>
-              <Button 
                 onClick={handleEvaluate} 
                 disabled={isLoading || !testText.trim()}
               >
@@ -213,6 +210,16 @@ export default function TestPostPage() {
                     className={`${getScoreColor(evaluationResult.confidence)} text-white`}
                   >
                     {(evaluationResult.confidence * 100).toFixed(2)}%
+                  </Badge>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <span className="font-medium">News Status:</span>
+                  <Badge 
+                    variant={getStatusVariant(evaluationResult.status)}
+                    className={getStatusClassName(evaluationResult.status)}
+                  >
+                    {getStatusText(evaluationResult.status)}
                   </Badge>
                 </div>
                 
@@ -306,73 +313,6 @@ export default function TestPostPage() {
           </Card>
         )}
 
-        {searchResults.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Similar Posts Found</CardTitle>
-              <CardDescription>
-                Posts with highest similarity scores to your input text
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {searchResults.map((result, index) => (
-                  <div key={result.id}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="text-sm text-muted-foreground">
-                            Result #{index + 1}
-                          </p>
-                          {result.is_fake !== undefined && (
-                            <Badge 
-                              variant={result.is_fake ? "destructive" : "default"} 
-                              className="text-xs"
-                            >
-                              {result.is_fake ? "FAKE" : "REAL"}
-                            </Badge>
-                          )}
-                        </div>
-                        {result.title && (
-                          <h4 className="font-medium text-sm mb-1">{result.title}</h4>
-                        )}
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          {result.content || result.text}
-                        </p>
-                        {result.url && (
-                          <div className="mt-2">
-                            <a 
-                              href={result.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs underline"
-                            >
-                              {result.url}
-                            </a>
-                          </div>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          Searchable text: {result.text}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <Badge 
-                          className={`${getScoreColor(result.score)} text-white`}
-                        >
-                          {(result.score * 100).toFixed(2)}%
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {getScoreText(result.score)}
-                        </span>
-                      </div>
-                    </div>
-                    {index < searchResults.length - 1 && <Separator className="mt-4" />}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
