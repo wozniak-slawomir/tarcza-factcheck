@@ -17,9 +17,9 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.svg",
+    name: "prompcik",
+    email: "ops@prompcik.dev",
+    avatar: "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
   },
   navMain: [
     {

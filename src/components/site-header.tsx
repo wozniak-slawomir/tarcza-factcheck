@@ -15,6 +15,9 @@ export function SiteHeader() {
         <h1 className="text-base font-medium">Słowa klucze</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
+            <Link href="/">Strona główna</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">Dashboard</Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
