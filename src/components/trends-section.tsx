@@ -4,7 +4,6 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconTrendingUp } from "@tabler/icons-react";
-import TrendingChart from "./trending-chart";
 import type { ChartConfig } from "@/components/ui/chart";
 import type { RecentTrendWord } from "@/hooks/use-trends";
 
@@ -23,7 +22,7 @@ function MiniProgress({ value, accent }: { value: number; accent?: boolean }) {
   );
 }
 
-export function TrendsSection({ trends, chartData, chartConfig }: TrendsSectionProps) {
+export function TrendsSection({ trends }: TrendsSectionProps) {
   return (
     <>
       <CardHeader>

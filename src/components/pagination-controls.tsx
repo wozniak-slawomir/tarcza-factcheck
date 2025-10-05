@@ -9,7 +9,7 @@ interface PaginationControlsProps {
 
 export function PaginationControls({ page, pageCount, onPageChange }: PaginationControlsProps) {
   return (
-    <div className="flex items-center justify-between mt-4">
+    <div className="flex items-center justify-between mt-4 w-full">
       <span className="text-sm text-muted-foreground">
         Strona {page + 1} z {pageCount}
       </span>
