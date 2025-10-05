@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { DemoLogoutButton } from "@/components/demo-auth-guard";
 
 export function SiteHeader() {
   return (
@@ -10,13 +13,15 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">Słowa klucze</h1>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">Dashboard</Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
             <Link href="/test-post">Test Post</Link>
           </Button>
+          <Separator orientation="vertical" className="mx-1 hidden h-6 sm:block" />
+          <DemoLogoutButton className="hidden sm:inline-flex" />
         </div>
       </div>
     </header>

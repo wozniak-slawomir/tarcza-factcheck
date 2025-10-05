@@ -295,6 +295,13 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="hidden text-[#003a8c] border-[#003a8c]/30 bg-white hover:bg-[#edf2ff] sm:inline-flex"
+            asChild
+          >
+            <Link href="/login">Logowanie</Link>
+          </Button>
           <Button variant="ghost" className="text-slate-600 hover:text-[#003a8c]" asChild>
             <Link href="/dashboard">Przejdź do panelu</Link>
           </Button>
