@@ -178,4 +178,45 @@
     opacity: 0;
     animation: fade-rise 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+      filter: blur(40px);
+    }
+    50% {
+      opacity: 1;
+      filter: blur(20px);
+    }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 12s ease-in-out infinite;
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  .glass-panel {
+    backdrop-filter: blur(18px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.55));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
 }
