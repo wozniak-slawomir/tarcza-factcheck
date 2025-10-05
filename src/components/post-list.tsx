@@ -4,7 +4,6 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableHead, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { IconFilter, IconX, IconArrowUp, IconArrowDown, IconArrowsSort } from "@tabler/icons-react";
 import { usePosts } from "@/hooks/use-posts";
 import { usePagination } from "@/hooks/use-pagination";
@@ -43,11 +42,9 @@ export default function PostList() {
     }
 
     // Apply sorting
-  type SortableValue = string | number;
-
     return [...filtered].sort((a, b) => {
-      let aValue: SortableValue = "";
-      let bValue: SortableValue = "";
+      let aValue: any;
+      let bValue: any;
 
       switch (sortField) {
         case "text":
@@ -63,8 +60,8 @@ export default function PostList() {
           bValue = b.url || "";
           break;
         case "createdAt":
-          aValue = new Date(a.createdAt || 0).getTime();
-          bValue = new Date(b.createdAt || 0).getTime();
+          aValue = new Date(a.createdAt || 0);
+          bValue = new Date(b.createdAt || 0);
           break;
         default:
           return 0;
@@ -192,22 +189,15 @@ export default function PostList() {
             )}
           </div>
 
-          <CardTitle className="mt-5 flex items-center gap-2 text-2xl font-semibold">
-            <span className="tabular-nums">
-              {filter === "all"
-                ? "Wszystkie posty"
-                : filter === "real"
-                ? "Prawdziwe posty"
-                : filter === "fake"
-                ? "Fałszywe posty"
-                : "Nieznane posty"}
-            </span>
-            <span className="text-muted-foreground">:</span>
-            {loading ? (
-              <Skeleton className="h-6 w-12 rounded-md" />
-            ) : (
-              <span className="tabular-nums text-primary">{filteredAndSortedPosts.length}</span>
-            )}
+          <CardTitle className="text-2xl font-semibold tabular-nums mt-5">
+            {filter === "all"
+              ? "Wszystkie posty"
+              : filter === "real"
+              ? "Prawdziwe posty"
+              : filter === "fake"
+              ? "Fałszywe posty"
+              : "Nieznane posty"}
+            : {filteredAndSortedPosts.length}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
